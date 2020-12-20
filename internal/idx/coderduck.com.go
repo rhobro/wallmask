@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 	"time"
+	"wallmask/pkg/core"
 )
 
 func init() {
@@ -30,7 +31,7 @@ func init() {
 			// Process
 			raw := strings.TrimSpace(page.Find("textarea#rawData").Get(0).FirstChild.Data)
 			for _, line := range strings.Split(raw, "\n") {
-				Add(New(line))
+				Add(core.New(line))
 			}
 
 			<-t.C

@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"strconv"
 	"time"
+	"wallmask/pkg/core"
 )
 
 func init() {
@@ -112,7 +113,7 @@ func init() {
 					// Go through lists
 					for _, country := range l.Countries {
 						for _, raw := range country.URLs {
-							Add(New(raw))
+							Add(core.New(raw))
 						}
 					}
 				}

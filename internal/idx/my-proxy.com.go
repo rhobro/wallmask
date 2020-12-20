@@ -42,7 +42,7 @@ func init() {
 func igMyProxyExtract(n *html.Node) {
 	// Process text
 	if n.Data != "br" {
-		Add(New(n.Data))
+		Add(core.New(n.Data))
 	}
 
 	// Move onto next sibling

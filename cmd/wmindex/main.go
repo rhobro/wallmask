@@ -1,11 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"net/url"
-	"time"
-	"wallmask/internal/idx"
 )
 
 func init() {
@@ -18,8 +15,5 @@ func init() {
 }
 
 func main() {
-	for {
-		fmt.Println(len(idx.Proxies))
-		time.Sleep(time.Second)
-	}
+
 }

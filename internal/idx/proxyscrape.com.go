@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"strings"
 	"time"
+	"wallmask/pkg/core"
 )
 
 func init() {
@@ -43,7 +44,7 @@ func init() {
 				}
 
 				// add after parsing string
-				Add(New(line))
+				Add(core.New(line))
 			}
 
 			<-t.C

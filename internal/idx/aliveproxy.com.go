@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 	"time"
+	"wallmask/pkg/core"
 )
 
 func init() {
@@ -37,7 +38,7 @@ func init() {
 				proxyType := strings.ToLower(sl.Find("td").Get(2).FirstChild.Data)
 				if strings.Contains(proxyType, "high") {
 					raw := strings.TrimSpace(sl.Find("td").Get(0).FirstChild.Data)
-					Add(New(raw))
+					Add(core.New(raw))
 				}
 			})
 

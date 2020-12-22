@@ -2,21 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="ce2e6430-fad0-4485-9a72-aed91990e463" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/internal/platform/db/db.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pkg/core/struct.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pkg/proxy/proxy.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/wallmask.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/wallmask.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/run.sh" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/bin/wmindex" beforeDir="false" afterPath="$PROJECT_DIR$/bin/wmindex" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cmd/wmindex/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/wmindex/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/go.sum" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/idx/aliveproxy.com.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/idx/aliveproxy.com.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/idx/coderduck.com.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/idx/coderduck.com.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/idx/my-proxy.com.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/idx/my-proxy.com.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/idx/openproxy.space.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/idx/openproxy.space.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/idx/proxyscrape.com.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/idx/proxyscrape.com.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/idx/z.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/idx/z.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -64,23 +53,6 @@
       <recent name="$PROJECT_DIR$/pkg/util" />
     </key>
   </component>
-  <component name="RunManager">
-    <configuration name="wmindex" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true">
-      <module name="wallmask" />
-      <working_directory value="$PROJECT_DIR$" />
-      <kind value="PACKAGE" />
-      <filePath value="$PROJECT_DIR$/cmd/wmindex/main.go" />
-      <package value="wallmask/cmd/wmindex" />
-      <directory value="$PROJECT_DIR$" />
-      <output_directory value="$PROJECT_DIR$/bin" />
-      <method v="2" />
-    </configuration>
-    <recent_temporary>
-      <list>
-        <item itemvalue="Go Build.wmindex" />
-      </list>
-    </recent_temporary>
-  </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
@@ -97,17 +69,37 @@
       <option name="project" value="LOCAL" />
       <updated>1608472548419</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Separated cli from server">
+      <created>1608489609023</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1608489609023</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="oldMeFiltersMigrated" value="true" />
+  </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
     <MESSAGE value="Added first proxy sources" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added first proxy sources" />
+    <MESSAGE value="Separated cli from server" />
+    <option name="LAST_COMMIT_MESSAGE" value="Separated cli from server" />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="REFORMAT_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="REARRANGE_BEFORE_PROJECT_COMMIT" value="true" />

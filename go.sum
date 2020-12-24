@@ -1,9 +1,11 @@
-github.com/Bytesimal/goutils v1.0.0 h1:dKbow3aJEgLU/EecItcDVK9ZHDqtokNruzwZ8xJNuo4=
-github.com/Bytesimal/goutils v1.0.0/go.mod h1:DFXjZqKyAFD4/3cCiAry9AWJv9m82i2rRPIjbdeuptg=
+github.com/Bytesimal/goutils v1.0.6 h1:NXZCb94stfrTVFpoi3Y9Zcov5nU6kluEM7hvcl+oEDE=
+github.com/Bytesimal/goutils v1.0.6/go.mod h1:SnXrrBqmleGIaDaqDtE+jUoAlSioKPU945QfMmg9qk0=
 github.com/PuerkitoBio/goquery v1.6.0 h1:j7taAbelrdcsOlGeMenZxc2AWXD5fieT1/znArdnx94=
 github.com/PuerkitoBio/goquery v1.6.0/go.mod h1:GsLWisAFVj4WgDibEWF4pvYnkVQBpKBKeU+7zCJoLcc=
 github.com/andybalholm/cascadia v1.1.0 h1:BuuO6sSfQNFRu1LppgbD25Hr2vLYW25JvxHs5zzsLTo=
 github.com/andybalholm/cascadia v1.1.0/go.mod h1:GsXiBklL0woXo1j/WYWtSYYC4ouU9PqHO0sqidkEA4Y=
+github.com/artdarek/go-unzip v1.0.0 h1:Ja9wfhiXyl67z5JT37rWjTSb62KXDP+9jHRkdSREUvg=
+github.com/artdarek/go-unzip v1.0.0/go.mod h1:KhX4LV7e4UwWCTo7orBYnJ6LJ/dZTI6jXxUg69hO/C8=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/ibmdb/go_ibm_db v0.3.0 h1:KCSVFS9eXmlTEFL8ScyROsYWmP02G3eGce7VRAt4Csk=

@@ -1,15 +1,17 @@
 package idx
 
 import (
+	"fmt"
 	"github.com/Bytesimal/goutils/pkg/httputil"
 	"github.com/PuerkitoBio/goquery"
 	"net/http"
 	"strings"
 	"time"
-	"wallmask/pkg/core"
+	"wallmask/pkg/proxy"
 )
 
 func init() {
+	src := "aliveproxy.com"
 	run := func() {
 		base := "http://www.aliveproxy.com/high-anonymity-proxy-list/"
 		refreshDuration := 5 * time.Minute
@@ -21,10 +23,12 @@ func init() {
 			rq.Header.Set("User-Agent", httputil.RandUA())
 			rsp, err := httputil.RQUntil(http.DefaultClient, rq)
 			if err != nil {
+				proxyErr(src, fmt.Errorf("rq for page with list: %s", err))
 				continue
 			}
 			page, err := goquery.NewDocumentFromReader(rsp.Body)
 			if err != nil {
+				proxyErr(src, fmt.Errorf("parse page HTML: %s", err))
 				continue
 			}
 
@@ -38,7 +42,7 @@ func init() {
 				proxyType := strings.ToLower(sl.Find("td").Get(2).FirstChild.Data)
 				if strings.Contains(proxyType, "high") {
 					raw := strings.TrimSpace(sl.Find("td").Get(0).FirstChild.Data)
-					Add(core.New(raw))
+					Add(proxy.New(raw))
 				}
 			})
 
@@ -46,6 +50,5 @@ func init() {
 		}
 	}
 
-	src := "aliveproxy.com"
 	addFuncs[src] = run
 }

@@ -1,14 +1,17 @@
 package idx
 
 import (
+	"fmt"
 	"github.com/Bytesimal/goutils/pkg/httputil"
 	"github.com/PuerkitoBio/goquery"
 	"golang.org/x/net/html"
 	"net/http"
 	"time"
+	"wallmask/pkg/proxy"
 )
 
 func init() {
+	src := "my-proxy.com"
 	run := func() {
 		base := "https://www.my-proxy.com/free-elite-proxy.html"
 		refreshDuration := 10 * time.Minute
@@ -20,10 +23,12 @@ func init() {
 			rq.Header.Set("User-Agent", httputil.RandUA())
 			rsp, err := httputil.RQUntil(http.DefaultClient, rq)
 			if err != nil {
+				proxyErr(src, fmt.Errorf("rq for page with list: %s", err))
 				continue
 			}
 			page, err := goquery.NewDocumentFromReader(rsp.Body)
 			if err != nil {
+				proxyErr(src, fmt.Errorf("parse page with goquery: %s", err))
 				continue
 			}
 
@@ -35,14 +40,13 @@ func init() {
 		}
 	}
 
-	src := "my-proxy.com"
 	addFuncs[src] = run
 }
 
 func igMyProxyExtract(n *html.Node) {
 	// Process text
 	if n.Data != "br" {
-		Add(core.New(n.Data))
+		Add(proxy.New(n.Data))
 	}
 
 	// Move onto next sibling

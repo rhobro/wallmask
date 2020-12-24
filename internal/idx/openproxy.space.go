@@ -1,25 +1,30 @@
 package idx
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
 	"github.com/Bytesimal/goutils/pkg/coll"
+	"github.com/Bytesimal/goutils/pkg/fileio"
 	"github.com/Bytesimal/goutils/pkg/httputil"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
 	"time"
-	"wallmask/pkg/core"
+	"wallmask/pkg/proxy"
 )
 
 func init() {
+	src := "openproxy.space"
 	run := func() {
 		base := "https://api.openproxy.space/list?"
 		listBase := "https://api.openproxy.space/list/"
 		refreshDuration := 12 * time.Hour
 		t := time.NewTicker(refreshDuration)
 
-		// structs for json unmarshalling
+		// structs for json unmarshaling
 		type listSrc struct {
 			Protocols []int  `json:"protocols"`
 			Count     int    `json:"count"`
@@ -28,7 +33,7 @@ func init() {
 		}
 		// planners
 		var latest int64
-		var firstIdxd bool
+		var firstIndexed bool
 
 		// Index all proxies
 		v := url.Values{}
@@ -40,7 +45,7 @@ func init() {
 			// Get params for listSrc urls
 			v.Set("skip", strconv.Itoa(n))
 
-			if firstIdxd {
+			if firstIndexed {
 				<-t.C
 			}
 
@@ -49,10 +54,12 @@ func init() {
 			rq.Header.Set("User-Agent", httputil.RandUA())
 			rsp, err := httputil.RQUntil(http.DefaultClient, rq)
 			if err != nil {
+				proxyErr(src, fmt.Errorf("rq for lists: %s", err))
 				continue
 			}
 			bd, err := ioutil.ReadAll(rsp.Body)
 			if err != nil {
+				proxyErr(src, fmt.Errorf("reading rq body for lists: %s", err))
 				continue
 			}
 			rsp.Body.Close()
@@ -61,13 +68,29 @@ func init() {
 			var lists []listSrc
 			err = json.Unmarshal(bd, &lists)
 			if err != nil {
+				// Save json in tmp file for post debugging
+				f, fErr := ioutil.TempFile(fileio.TmpDir, "openproxy.space_json_*.json")
+
+				if fErr != nil {
+					proxyErr(src, fmt.Errorf("creating temp file at %s: %s\n", fileio.TmpDir, err))
+				} else {
+					_, cErr := io.Copy(f, bytes.NewReader(bd))
+
+					if cErr != nil {
+						proxyErr(src, fmt.Errorf("copying json into tmpfile at %s: %s\n", f.Name(), cErr))
+					} else {
+						proxyErr(src, fmt.Errorf("unmarshaling proxy lists, json at %s: %s", f.Name(), err))
+					}
+					f.Close()
+				}
+
 				continue
 			}
 
 			// stop loop if all have been indexed
 			if len(lists) == 0 {
 				n = 0
-				firstIdxd = true
+				firstIndexed = true
 				continue
 			}
 
@@ -76,7 +99,7 @@ func init() {
 				if lSrc.Time > latest {
 					latest = lSrc.Time
 				} else {
-					if firstIdxd {
+					if firstIndexed {
 						continue
 					}
 				}
@@ -89,10 +112,12 @@ func init() {
 					rq.Header.Set("User-Agent", httputil.RandUA())
 					rsp, err := httputil.RQUntil(http.DefaultClient, rq)
 					if err != nil {
+						proxyErr(src, fmt.Errorf("rq proxies in list: %s", err))
 						continue
 					}
 					bd, err := ioutil.ReadAll(rsp.Body)
 					if err != nil {
+						proxyErr(src, fmt.Errorf("reading proxies in list: %s", err))
 						continue
 					}
 					rsp.Body.Close()
@@ -107,24 +132,39 @@ func init() {
 					var l list
 					err = json.Unmarshal(bd, &l)
 					if err != nil {
+						// Save json in tmp file for post debugging
+						f, fErr := ioutil.TempFile(fileio.TmpDir, "openproxy.space_json_*.json")
+
+						if fErr != nil {
+							proxyErr(src, fmt.Errorf("creating temp file at %s: %s\n", fileio.TmpDir, err))
+						} else {
+							_, cErr := io.Copy(f, bytes.NewReader(bd))
+
+							if cErr != nil {
+								proxyErr(src, fmt.Errorf("copying json into tmpfile at %s: %s\n", f.Name(), cErr))
+							} else {
+								proxyErr(src, fmt.Errorf("unmarshaling proxies from list, json at %s: %s", f.Name(), err))
+							}
+							f.Close()
+						}
+
 						continue
 					}
 
 					// Go through lists
 					for _, country := range l.Countries {
 						for _, raw := range country.URLs {
-							Add(core.New(raw))
+							Add(proxy.New(raw))
 						}
 					}
 				}
 			}
 
-			if !firstIdxd {
+			if !firstIndexed {
 				n += len(lists)
 			}
 		}
 	}
 
-	src := "openproxy.space"
 	addFuncs[src] = run
 }

@@ -2,16 +2,18 @@ package idx
 
 import (
 	"bufio"
+	"fmt"
 	"github.com/Bytesimal/goutils/pkg/httputil"
-	"github.com/Bytesimal/goutils/pkg/util"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
-	"wallmask/pkg/core"
+	"wallmask/pkg/proxy"
 )
 
 func init() {
+	src := "proxyscrape.com"
 	run := func() {
 		base := "https://api.proxyscrape.com/v2/?"
 		refreshDuration := 5 * time.Minute
@@ -32,25 +34,30 @@ func init() {
 			rq, _ := http.NewRequest("GET", base+v.Encode(), nil)
 			rq.Header.Set("User-Agent", httputil.RandUA())
 			rsp, err := http.DefaultClient.Do(rq)
-			util.Check(err)
+			if err != nil {
+				proxyErr(src, fmt.Errorf("rq proxy list: %s", err))
+				continue
+			}
 			rd := bufio.NewReader(rsp.Body)
 
 			for {
 				line, err := rd.ReadString('\n')
-				line = strings.TrimSpace(line)
-				// Check for EOF
+				// Check for EOF or error
 				if err != nil {
+					if err != io.EOF {
+						proxyErr(src, fmt.Errorf("reading list: %s", err))
+					}
 					break
 				}
+				line = strings.TrimSpace(line)
 
 				// add after parsing string
-				Add(core.New(line))
+				Add(proxy.New(line))
 			}
 
 			<-t.C
 		}
 	}
 
-	src := "proxyscrape.com"
 	addFuncs[src] = run
 }

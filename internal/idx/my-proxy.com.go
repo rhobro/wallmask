@@ -31,6 +31,7 @@ func init() {
 				proxyErr(src, fmt.Errorf("parse page with goquery: %s", err))
 				continue
 			}
+			rsp.Body.Close()
 
 			// Recursively extract elements
 			igMyProxyExtract(page.Find("div.list").Get(0).FirstChild)

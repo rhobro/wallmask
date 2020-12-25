@@ -33,7 +33,7 @@ func init() {
 			// Request
 			rq, _ := http.NewRequest("GET", base+v.Encode(), nil)
 			rq.Header.Set("User-Agent", httputil.RandUA())
-			rsp, err := http.DefaultClient.Do(rq)
+			rsp, err := httputil.RQUntil(http.DefaultClient, rq)
 			if err != nil {
 				proxyErr(src, fmt.Errorf("rq proxy list: %s", err))
 				continue
@@ -54,6 +54,7 @@ func init() {
 				// add after parsing string
 				Add(proxy.New(line))
 			}
+			rsp.Body.Close()
 
 			<-t.C
 		}

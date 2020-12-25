@@ -32,6 +32,7 @@ func init() {
 				proxyErr(src, fmt.Errorf("parse page HTML: %s", err))
 				continue
 			}
+			rsp.Body.Close()
 
 			page.Find("table.table > tbody > tr").Each(func(_ int, sl *goquery.Selection) {
 				if sl.Find("td > abbr > script").Length() > 0 {

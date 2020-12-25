@@ -31,6 +31,7 @@ func init() {
 				proxyErr(src, fmt.Errorf("parse page HTML: %s", err))
 				continue
 			}
+			rsp.Body.Close()
 
 			page.Find("table.cm.or > tbody > tr").Each(func(row int, sl *goquery.Selection) {
 				// Skip col headers

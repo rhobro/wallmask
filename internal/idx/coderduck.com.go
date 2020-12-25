@@ -31,6 +31,7 @@ func init() {
 				proxyErr(src, fmt.Errorf("parse HTML from page: %s", err))
 				continue
 			}
+			rsp.Body.Close()
 
 			// Process
 			raw := strings.TrimSpace(page.Find("textarea#rawData").Get(0).FirstChild.Data)

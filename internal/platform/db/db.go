@@ -2,19 +2,15 @@ package db
 
 import (
 	"database/sql"
-	"fmt"
 	"github.com/Bytesimal/goutils/pkg/coll"
-	"github.com/ibmdb/go_ibm_db"
-	_ "github.com/ibmdb/go_ibm_db"
 	"log"
-	"strings"
-	"sync"
 )
 
 const dsn = "DATABASE=BLUDB;HOSTNAME=dashdb-txn-sbox-yp-lon02-04.services.eu-gb.bluemix.net;PORT=50001;PROTOCOL=TCPIP;UID=lzx36405;PWD=8k11s2d98lhk81^p;Security=SSL;"
 
 var DB *sql.DB
-var connectNotice sync.Once
+
+const maxConn = 1
 
 var reqTables = map[string]string{
 	"PRX_PROXIES": `
@@ -30,23 +26,21 @@ var reqTables = map[string]string{
 func init() {
 	// Connect to db
 	var err error
-	DB, err = sql.Open("go_ibm_db", dsn)
+	DB, err = sql.Open("pgx", dsn)
 	if err != nil {
 		log.Fatalf("{proxy} {db} open connection to DB: %s\n", err)
 	}
+	DB.SetMaxOpenConns(maxConn)
+	log.Println("{proxy} {db} Connected")
 
 	// Check if req tables
-	st := Prepare(`
+	rs, err := Exec(`
 		SELECT table_name
 		FROM sysibm.tables
 		WHERE table_schema = 'LZX36405';`)
-	defer st.Close()
-	rs, err := Exec(st)
 	if err != nil {
-		fmt.Println()
 		log.Fatalf("{proxy} {db} access scema list: %s\n", err)
 	}
-	defer rs.Close()
 
 	// List tables
 	var tables []string
@@ -58,49 +52,30 @@ func init() {
 		}
 		tables = append(tables, nS)
 	}
+	rs.Close()
 
 	// Add table if doesn't exist
 	for t, q := range reqTables {
 		if !coll.ContainsStr(tables, t) {
 			// Create table if does not exist
-			st := Prepare(q)
-			_, err := Exec(st)
-			st.Close()
+			_, err := Exec(q)
 			if err != nil {
-				if !strings.Contains(err.(*go_ibm_db.Error).Diag[0].Message, Identical) {
-					log.Fatalf("{proxy} {db} create table %s: %s\n", t, err)
-				} else {
-					continue
-				}
+				log.Fatal(err)
 			}
 		}
 	}
 }
 
-func Prepare(query string) (st *sql.Stmt) {
-	st, _ = DB.Prepare(query)
-	return
-}
-
-func Exec(st *sql.Stmt) (s *sql.Rows, err error) {
-	connectNotice.Do(func() {
-		log.Println("{proxy} {db} Connected")
-	})
-
-	err = fmt.Errorf("tmp")
-	for i := 0; i < 10; i++ {
-		if err != nil {
-			// Break if statement gives no rs
-			if err.Error() == NoRS {
-				err = nil
-				break
-			}
-			s, err = st.Query()
-		} else {
-			break
-		}
+func Exec(query string) (*sql.Rows, error) {
+	// Prep
+	st, err := DB.Prepare(query)
+	if err != nil {
+		log.Fatalf("prep stmt: %s", err)
 	}
-	return
+	defer st.Close()
+
+	// Exec
+	return st.Query()
 }
 
 const (

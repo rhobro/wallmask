@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"github.com/Bytesimal/goutils/pkg/fileio"
-	_ "github.com/ibmdb/go_ibm_db"
 	"os"
 	"wallmask/internal/idx"
 )

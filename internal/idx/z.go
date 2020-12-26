@@ -17,17 +17,21 @@ var addFuncs = make(map[string]func())
 func Index() {
 	// launch indexers
 	for src, f := range addFuncs {
-		log.Printf("{proxy} Indexing proxies from %s", src)
+		log.Printf("{proxy} indexing %s", src)
 		go f()
 	}
 
 	// launch db testers
-	go func() {
-		dbProxiesTest(true)
+	/*go func() {
+		for {
+			dbProxiesTest(true)
+		}
 	}()
 	go func() {
-		dbProxiesTest(false)
-	}()
+		for {
+			dbProxiesTest(false)
+		}
+	}()*/
 	log.Println("{proxy} Initialized")
 }
 
@@ -35,18 +39,21 @@ func Add(p *proxy.Proxy) {
 	if p != nil {
 		// Add if positive test with working bool
 		last, ok := test(p)
+
+		if ok {
+			fmt.Println(p)
+		}
+		return
+
 		// check if already exists
-		st := db.Prepare(fmt.Sprintf(`
+		rs, err := db.Exec(fmt.Sprintf(`
 					SELECT id
 					FROM prx_proxies
 					WHERE ipv4 = '%s' AND port = %d;`, p.IPv4, p.Port))
-		defer st.Close()
-		rs, err := db.Exec(st)
 		if err != nil {
 			log.Printf("count occurences of %s: %s", p, err)
 			return
 		}
-		defer rs.Close()
 
 		// Get id if present
 		var id int
@@ -56,14 +63,13 @@ func Add(p *proxy.Proxy) {
 				log.Printf("scan result set of count occurences of %s: %s", p, err)
 			}
 		}
+		rs.Close()
 
 		if id == 0 {
 			// Add to database if not
-			st = db.Prepare(fmt.Sprintf(`
+			_, err = db.Exec(fmt.Sprintf(`
 						INSERT INTO prx_proxies (ipv4, port, lastTested, working)
 						VALUES ('%s', %d, %d, %t);`, p.IPv4, p.Port, last, ok))
-			defer st.Close()
-			_, err := db.Exec(st)
 			if err != nil {
 				log.Printf("add %s to db: %s", p, err)
 			}
@@ -80,6 +86,7 @@ const maxConcurrentTests = 100
 var semaphore = make(chan struct{}, maxConcurrentTests)
 
 func test(p *proxy.Proxy) (lastTested int64, ok bool) {
+	return 0, true
 	u, err := p.URL()
 	if err == nil {
 		cli := http.Client{
@@ -94,7 +101,7 @@ func test(p *proxy.Proxy) (lastTested int64, ok bool) {
 		semaphore <- struct{}{}
 		rsp, err := cli.Get("https://bytesimal.github.io/test")
 		<-semaphore
-		lastTested = time.Now().UnixNano()
+		lastTested = time.Now().Unix()
 
 		if err == nil {
 			defer rsp.Body.Close()
@@ -112,13 +119,11 @@ func test(p *proxy.Proxy) (lastTested int64, ok bool) {
 
 func dbProxiesTest(working bool) {
 	// test proxies which are currently working
-	st := db.Prepare(fmt.Sprintf(`
+	rs, err := db.Exec(fmt.Sprintf(`
 		SELECT id, ipv4, port
 		FROM prx_proxies
 		WHERE working = %t
 		ORDER BY lastTested;`, working))
-	defer st.Close()
-	rs, err := db.Exec(st)
 	if err != nil {
 		log.Printf("listing proxy from db to update test: %s", err)
 	}
@@ -135,16 +140,15 @@ func dbProxiesTest(working bool) {
 		last, ok := test(&p)
 		update(id, last, ok)
 	}
+	rs.Close()
 }
 
 func update(id int, last int64, working bool) {
 	// Update lastChecked
-	st := db.Prepare(fmt.Sprintf(`
+	_, err := db.Exec(fmt.Sprintf(`
 						UPDATE prx_proxies
 						SET lastTested = %d, working = %t
 						WHERE id = %d;`, last, working, id))
-	defer st.Close()
-	_, err := db.Exec(st)
 	if err != nil {
 		log.Printf("update proxy in db with id %d: %s", id, err)
 	}

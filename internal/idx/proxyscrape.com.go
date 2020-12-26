@@ -24,7 +24,7 @@ func init() {
 			v := url.Values{}
 			v.Set("request", "displayproxies")
 			v.Set("protocol", "http")
-			v.Set("timeout", "10000") // TODO change to 50
+			v.Set("timeout", "10000") // TODO change to timeoutDuration
 			v.Set("country", "all")
 			v.Set("ssl", "all")
 			v.Set("anonymity", "elite")

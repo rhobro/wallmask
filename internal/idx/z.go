@@ -2,7 +2,6 @@ package idx
 
 import (
 	"crypto/tls"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -22,7 +21,7 @@ func Index() {
 	}
 
 	// launch db testers
-	/*go func() {
+	go func() {
 		for {
 			dbProxiesTest(true)
 		}
@@ -31,7 +30,7 @@ func Index() {
 		for {
 			dbProxiesTest(false)
 		}
-	}()*/
+	}()
 	log.Println("{proxy} Initialized")
 }
 
@@ -40,41 +39,36 @@ func Add(p *proxy.Proxy) {
 		// Add if positive test with working bool
 		last, ok := test(p)
 
-		if ok {
-			fmt.Println(p)
-		}
-		return
-
 		// check if already exists
-		rs, err := db.Exec(fmt.Sprintf(`
-					SELECT id
-					FROM prx_proxies
-					WHERE ipv4 = '%s' AND port = %d;`, p.IPv4, p.Port))
+		rs, err := db.Query(`
+			SELECT id
+			FROM proxies
+			WHERE ipv4 = $1 AND port = $2;`, p.IPv4, p.Port)
 		if err != nil {
 			log.Printf("count occurences of %s: %s", p, err)
 			return
 		}
+		defer rs.Close()
 
 		// Get id if present
-		var id int
+		var id int64
 		if rs.Next() {
 			err := rs.Scan(&id)
 			if err != nil {
 				log.Printf("scan result set of count occurences of %s: %s", p, err)
 			}
 		}
-		rs.Close()
 
 		if id == 0 {
 			// Add to database if not
-			_, err = db.Exec(fmt.Sprintf(`
-						INSERT INTO prx_proxies (ipv4, port, lastTested, working)
-						VALUES ('%s', %d, %d, %t);`, p.IPv4, p.Port, last, ok))
+			err := db.Exec(`
+				INSERT INTO proxies (ipv4, port, lastTested, working)
+				VALUES ($1, $2, $3, $4);`, p.IPv4, p.Port, last, ok)
 			if err != nil {
 				log.Printf("add %s to db: %s", p, err)
 			}
 		} else {
-			// Update last tested if already in
+			// Update last tested if already in db
 			update(id, last, ok)
 		}
 	}
@@ -85,8 +79,7 @@ const maxConcurrentTests = 100
 
 var semaphore = make(chan struct{}, maxConcurrentTests)
 
-func test(p *proxy.Proxy) (lastTested int64, ok bool) {
-	return 0, true
+func test(p *proxy.Proxy) (lastTested time.Time, ok bool) {
 	u, err := p.URL()
 	if err == nil {
 		cli := http.Client{
@@ -101,7 +94,7 @@ func test(p *proxy.Proxy) (lastTested int64, ok bool) {
 		semaphore <- struct{}{}
 		rsp, err := cli.Get("https://bytesimal.github.io/test")
 		<-semaphore
-		lastTested = time.Now().Unix()
+		lastTested = time.Now()
 
 		if err == nil {
 			defer rsp.Body.Close()
@@ -118,12 +111,12 @@ func test(p *proxy.Proxy) (lastTested int64, ok bool) {
 }
 
 func dbProxiesTest(working bool) {
-	// test proxies which are currently working
-	rs, err := db.Exec(fmt.Sprintf(`
+	// test proxies
+	rs, err := db.Query(`
 		SELECT id, ipv4, port
-		FROM prx_proxies
-		WHERE working = %t
-		ORDER BY lastTested;`, working))
+		FROM proxies
+		WHERE working = $1
+		ORDER BY lastTested;`, working)
 	if err != nil {
 		log.Printf("listing proxy from db to update test: %s", err)
 	}
@@ -131,7 +124,7 @@ func dbProxiesTest(working bool) {
 	// test and update
 	for rs.Next() {
 		var p proxy.Proxy
-		var id int
+		var id int64
 		err := rs.Scan(&id, &p.IPv4, &p.Port)
 		if err != nil {
 			log.Printf("querying proxies for update test: %s", err)
@@ -143,12 +136,12 @@ func dbProxiesTest(working bool) {
 	rs.Close()
 }
 
-func update(id int, last int64, working bool) {
+func update(id int64, last time.Time, working bool) {
 	// Update lastChecked
-	_, err := db.Exec(fmt.Sprintf(`
-						UPDATE prx_proxies
-						SET lastTested = %d, working = %t
-						WHERE id = %d;`, last, working, id))
+	err := db.Exec(`
+		UPDATE proxies
+		SET lastTested = $1, working = $2
+		WHERE id = $3;`, last, working, id)
 	if err != nil {
 		log.Printf("update proxy in db with id %d: %s", id, err)
 	}

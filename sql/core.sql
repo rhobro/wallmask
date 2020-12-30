@@ -27,10 +27,10 @@ FROM proxies
 WHERE working
 ORDER BY lastTested DESC;
 
-SELECT id, ipv4, port
+SELECT CONCAT(ipv4, ':', CAST(port AS TEXT))
 FROM proxies
-WHERE working = true
-ORDER BY lastTested;
+WHERE working
+ORDER BY lastTested DESC;
 
 SELECT id
 FROM proxies

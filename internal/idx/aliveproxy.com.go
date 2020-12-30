@@ -23,7 +23,7 @@ func init() {
 			rq.Header.Set("User-Agent", httputil.RandUA())
 			rsp, err := httputil.RQUntil(http.DefaultClient, rq)
 			if err != nil {
-				proxyErr(src, fmt.Errorf("rq for page with list: %s", err))
+				proxyErr(src, fmt.Errorf("rq for list page: %s", err))
 				continue
 			}
 			page, err := goquery.NewDocumentFromReader(rsp.Body)

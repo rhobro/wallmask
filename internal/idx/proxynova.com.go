@@ -24,7 +24,7 @@ func init() {
 			rq.Header.Set("User-Agent", httputil.RandUA())
 			rsp, err := httputil.RQUntil(http.DefaultClient, rq)
 			if err != nil {
-				proxyErr(src, fmt.Errorf("rq for page with list: %s", err))
+				proxyErr(src, fmt.Errorf("rq for list page: %s", err))
 				continue
 			}
 			page, err := goquery.NewDocumentFromReader(rsp.Body)
@@ -40,8 +40,7 @@ func init() {
 					ip = ip[strings.Index(ip, "'")+1:]
 					ip = ip[:strings.Index(ip, "'")]
 
-					port, _ := strconv.ParseUint(strings.TrimSpace(sl.Find("td").Get(1).FirstChild.Data),
-						10, 16)
+					port, err := strconv.Atoi(sl.Find("td").Get(1).FirstChild.Data)
 					if err != nil {
 						return
 					}

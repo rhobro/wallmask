@@ -31,7 +31,7 @@ func New(raw string) (p *Proxy) {
 		spl := strings.Split(strings.TrimSpace(raw), ":")
 
 		if len(spl) == 2 {
-			port, err := strconv.ParseUint(spl[1], 10, 16)
+			port, err := strconv.Atoi(spl[1])
 			if err != nil {
 				return
 			}

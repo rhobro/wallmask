@@ -1,6 +1,8 @@
 package idx
 
 import (
+	"fmt"
+	"github.com/Bytesimal/goutils/pkg/httputil"
 	"github.com/PuerkitoBio/goquery"
 	"net/http"
 	"strings"
@@ -18,18 +20,15 @@ func init() {
 		for {
 			// Request
 			rq, _ := http.NewRequest("GET", base, nil)
-			//rq.Header.Set("User-Agent", httputil.RandUA())
-			rq.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 11_0) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.1 Safari/605.1.15")
-			//rq.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
-			//rsp, err := httputil.RQUntil(http.DefaultClient, rq)
-			rsp, err := http.DefaultClient.Do(rq)
+			rq.Header.Set("User-Agent", httputil.RandUA())
+			rsp, err := httputil.RQUntil(http.DefaultClient, rq)
 			if err != nil {
-				//proxyErr(src, fmt.Errorf("rq for page with list: %s", err))
+				proxyErr(src, fmt.Errorf("rq for list page: %s", err))
 				continue
 			}
 			page, err := goquery.NewDocumentFromReader(rsp.Body)
 			if err != nil {
-				//proxyErr(src, fmt.Errorf("parse page HTML: %s", err))
+				proxyErr(src, fmt.Errorf("parse page HTML: %s", err))
 				continue
 			}
 			rsp.Body.Close()

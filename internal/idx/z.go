@@ -21,16 +21,9 @@ func Index() {
 	}
 
 	// launch db testers
-	go func() {
-		for {
-			dbProxiesTest(true)
-		}
-	}()
-	go func() {
-		for {
-			dbProxiesTest(false)
-		}
-	}()
+	//go dbTest(true)
+	//go dbTest(false)
+
 	log.Println("{proxy} Initialized")
 }
 
@@ -40,18 +33,15 @@ func Add(p *proxy.Proxy) {
 		last, ok := test(p)
 
 		// check if already exists
-		rs, err := db.Query(`
+		rs := db.Query(`
 			SELECT id
 			FROM proxies
-			WHERE ipv4 = $1 AND port = $2;`, p.IPv4, p.Port)
-		if err != nil {
-			log.Printf("count occurences of %s: %s", p, err)
-			return
-		}
+			WHERE ipv4 = $1 AND port = $2
+			LIMIT 1;`, p.IPv4, p.Port)
 		defer rs.Close()
 
 		// Get id if present
-		var id int64
+		var id int64 = -1
 		if rs.Next() {
 			err := rs.Scan(&id)
 			if err != nil {
@@ -59,14 +49,11 @@ func Add(p *proxy.Proxy) {
 			}
 		}
 
-		if id == 0 {
-			// Add to database if not
-			err := db.Exec(`
+		if id == -1 {
+			// Add to database if not in already
+			db.Exec(`
 				INSERT INTO proxies (ipv4, port, lastTested, working)
 				VALUES ($1, $2, $3, $4);`, p.IPv4, p.Port, last, ok)
-			if err != nil {
-				log.Printf("add %s to db: %s", p, err)
-			}
 		} else {
 			// Update last tested if already in db
 			update(id, last, ok)
@@ -74,8 +61,10 @@ func Add(p *proxy.Proxy) {
 	}
 }
 
-const testTimeout = 1 * time.Second
-const maxConcurrentTests = 100
+const (
+	testTimeout        = 1 * time.Second
+	maxConcurrentTests = 250
+)
 
 var semaphore = make(chan struct{}, maxConcurrentTests)
 
@@ -110,40 +99,41 @@ func test(p *proxy.Proxy) (lastTested time.Time, ok bool) {
 	return
 }
 
-func dbProxiesTest(working bool) {
-	// test proxies
-	rs, err := db.Query(`
-		SELECT id, ipv4, port
-		FROM proxies
-		WHERE working = $1
-		ORDER BY lastTested;`, working)
-	if err != nil {
-		log.Printf("listing proxy from db to update test: %s", err)
-	}
-
-	// test and update
-	for rs.Next() {
-		var p proxy.Proxy
-		var id int64
-		err := rs.Scan(&id, &p.IPv4, &p.Port)
-		if err != nil {
-			log.Printf("querying proxies for update test: %s", err)
-		}
-
-		last, ok := test(&p)
-		update(id, last, ok)
-	}
-	rs.Close()
-}
-
 func update(id int64, last time.Time, working bool) {
-	// Update lastChecked
-	err := db.Exec(`
+	// Update lastChecked and working
+	db.Exec(`
 		UPDATE proxies
 		SET lastTested = $1, working = $2
 		WHERE id = $3;`, last, working, id)
-	if err != nil {
-		log.Printf("update proxy in db with id %d: %s", id, err)
+}
+
+const dbTestF = 1 * time.Minute
+
+func dbTest(working bool) {
+	t := time.NewTicker(dbTestF)
+	for {
+		// test proxies
+		rs := db.Query(`
+				SELECT id, ipv4, port
+				FROM proxies
+				WHERE working = $1
+				ORDER BY lastTested;`, working)
+
+		// get proxy and test
+		for rs.Next() {
+			var p proxy.Proxy
+			var id int64
+			err := rs.Scan(&id, &p.IPv4, &p.Port)
+			if err != nil {
+				log.Printf("querying proxies for update test: %s", err)
+			}
+
+			last, ok := test(&p)
+			update(id, last, ok)
+		}
+		rs.Close()
+
+		<-t.C
 	}
 }
 

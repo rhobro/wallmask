@@ -23,7 +23,7 @@ func init() {
 			rq.Header.Set("User-Agent", httputil.RandUA())
 			rsp, err := httputil.RQUntil(http.DefaultClient, rq)
 			if err != nil {
-				proxyErr(src, fmt.Errorf("rq for page with list: %s", err))
+				proxyErr(src, fmt.Errorf("rq for list page: %s", err))
 				continue
 			}
 			page, err := goquery.NewDocumentFromReader(rsp.Body)
@@ -34,8 +34,8 @@ func init() {
 			rsp.Body.Close()
 
 			// Recursively extract elements
-			igMyProxyExtract(page.Find("div.list").Get(0).FirstChild)
-			igMyProxyExtract(page.Find("div.to-lock").Get(0).FirstChild)
+			myProxyExtract(page.Find("div.list").Get(0).FirstChild)
+			myProxyExtract(page.Find("div.to-lock").Get(0).FirstChild)
 
 			<-t.C
 		}
@@ -44,7 +44,8 @@ func init() {
 	addFuncs[src] = run
 }
 
-func igMyProxyExtract(n *html.Node) {
+// TODO try if there is non-recursive method
+func myProxyExtract(n *html.Node) {
 	// Process text
 	if n.Data != "br" {
 		Add(proxy.New(n.Data))
@@ -52,6 +53,6 @@ func igMyProxyExtract(n *html.Node) {
 
 	// Move onto next sibling
 	if n.NextSibling != nil && n.NextSibling.Data != "div" {
-		igMyProxyExtract(n.NextSibling)
+		myProxyExtract(n.NextSibling)
 	}
 }

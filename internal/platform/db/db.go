@@ -10,7 +10,7 @@ import (
 )
 
 // DSN to connect to test CockroachDB
-const dsn = "postgres://root@localhost:26257/wallmask"
+const url = "postgres://root@localhost:26257/wallmask"
 
 // Concurrency-safe pgxpool.Pool instead of pgx.Conn
 var db *pgxpool.Pool
@@ -29,21 +29,18 @@ var reqTables = map[string]string{
 func init() {
 	// Connect to db
 	var err error
-	db, err = pgxpool.Connect(context.Background(), dsn)
+	db, err = pgxpool.Connect(context.Background(), url)
 	if err != nil {
-		log.Fatalf("{proxy} {db} open connection to db: %s\n", err)
+		log.Fatalf("{db} open connection to db: %s\n", err)
 	}
-	log.Println("{proxy} {db} Connected")
+	log.Println("{db} Connected")
 
 	// List tables
 	var tables []string
-	rs, err := Query(`
+	rs := Query(`
 		SELECT table_name
 		FROM information_schema.tables
 		WHERE table_schema = 'public';`)
-	if err != nil {
-		log.Fatalf("querying db tables: %s", err)
-	}
 	for rs.Next() {
 		var tbl string
 		err := rs.Scan(&tbl)
@@ -57,21 +54,18 @@ func init() {
 	for t, q := range reqTables {
 		if !coll.ContainsStr(tables, t) {
 			// Create table if does not exist
-			err := Exec(q)
-			if err != nil {
-				log.Fatal(err)
-			}
+			Exec(q)
 		}
 	}
 }
 
 // For executing SQL in something like an INSERT or UPDATE statement without returning any rows.
-func Exec(sql string, args ...interface{}) (err error) {
-	rs, err := Query(sql, args...)
-	if err == nil {
-		rs.Close()
+func Exec(sql string, args ...interface{}) {
+	rs, err := query(sql, args...)
+	if err != nil {
+		log.Printf("{db} exec query %s: %s", sql, err)
 	}
-	return
+	rs.Close()
 }
 
 // Utility interface for db.Query
@@ -82,7 +76,15 @@ func Exec(sql string, args ...interface{}) (err error) {
 // For extra control over how the query is executed, the types pgx.QuerySimpleProtocol, pgx.QueryResultFormats, and
 // QueryResultFormatsByOID may be used as the first args to control exactly how the query is executed. This is rarely
 // needed. See the documentation for those types for details.
-func Query(sql string, args ...interface{}) (pgx.Rows, error) {
+func Query(sql string, args ...interface{}) pgx.Rows {
+	rs, err := query(sql, args...)
+	if err != nil {
+		log.Printf("{db} query %s: %s", sql, err)
+	}
+	return rs
+}
+
+func query(sql string, args ...interface{}) (pgx.Rows, error) {
 	return db.Query(context.Background(), sql, args...)
 }
 
@@ -91,8 +93,12 @@ func Query(sql string, args ...interface{}) (pgx.Rows, error) {
 // QueryFunc executes sql with args. For each row returned by the query the values will scanned into the elements of
 // scans and f will be called. If any row fails to scan or f returns an error the query will be aborted and the error
 // will be returned.
-func QueryFunc(sql string, args []interface{}, scans []interface{}, f func(row pgx.QueryFuncRow) error) (pgconn.CommandTag, error) {
-	return db.QueryFunc(context.Background(), sql, args, scans, f)
+func QueryFunc(sql string, args []interface{}, scans []interface{}, f func(row pgx.QueryFuncRow) error) pgconn.CommandTag {
+	cmd, err := db.QueryFunc(context.Background(), sql, args, scans, f)
+	if err != nil {
+		log.Printf("{db} query func %s: %s", sql, err)
+	}
+	return cmd
 }
 
 // Utility interface for db.QueryRow

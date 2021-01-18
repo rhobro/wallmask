@@ -14,51 +14,59 @@ import (
 
 func init() {
 	src := "proxyscrape.com"
-	run := func() {
-		base := "https://api.proxyscrape.com/v2/?"
-		refreshDuration := 5 * time.Minute
-		t := time.NewTicker(refreshDuration)
+	base := "https://api.proxyscrape.com/v2/?"
 
-		for {
-			// Params
-			v := url.Values{}
-			v.Set("request", "displayproxies")
-			v.Set("protocol", "http")
-			v.Set("timeout", "10000")
-			v.Set("country", "all")
-			v.Set("ssl", "all")
-			v.Set("anonymity", "elite")
-			v.Set("simplified", "false")
-
-			// Request
-			rq, _ := http.NewRequest("GET", base+v.Encode(), nil)
-			rq.Header.Set("User-Agent", httputil.RandUA())
-			rsp, err := httputil.RQUntil(http.DefaultClient, rq)
-			if err != nil {
-				proxyErr(src, fmt.Errorf("rq proxy list: %s", err))
-				continue
-			}
-			rd := bufio.NewReader(rsp.Body)
-
-			for {
-				line, err := rd.ReadString('\n')
-				// Check for EOF or error
-				if err != nil {
-					if err != io.EOF {
-						proxyErr(src, fmt.Errorf("reading list: %s", err))
-					}
-					break
-				}
-				line = strings.TrimSpace(line)
-
-				// add after parsing string
-				Add(proxy.New(line))
-			}
-			rsp.Body.Close()
-
-			<-t.C
+	scrape := func(sch proxy.Protocol, v *url.Values) {
+		// Request
+		rq, _ := http.NewRequest("GET", base+v.Encode(), nil)
+		rq.Header.Set("User-Agent", httputil.RandUA())
+		rsp, err := httputil.RQUntil(http.DefaultClient, rq)
+		if err != nil {
+			proxyErr(src, fmt.Errorf("rq proxy list: %s", err))
+			return
 		}
+		rd := bufio.NewReader(rsp.Body)
+
+		var ps []*proxy.Proxy
+		for {
+			line, err := rd.ReadString('\n')
+			// Check for EOF or error
+			if err != nil {
+				if err != io.EOF {
+					proxyErr(src, fmt.Errorf("reading list: %s", err))
+				}
+				break
+			}
+			line = strings.TrimSpace(line)
+
+			// add after parsing string
+			p := proxy.New(line)
+			p.Protocol = sch
+			ps = append(ps, p)
+		}
+		rsp.Body.Close()
+		AddBatch(ps)
 	}
 
-	addFuncs[src] = run
+	run := func() {
+		v := url.Values{}
+		v.Set("request", "displayproxies")
+		v.Set("protocol", "http")
+		v.Set("timeout", "10000")
+		v.Set("country", "all")
+		v.Set("ssl", "all")
+		v.Set("anonymity", "elite")
+		scrape(proxy.HTTP, &v)
+		v = url.Values{}
+		v.Set("request", "displayproxies")
+		v.Set("protocol", "socks5")
+		v.Set("timeout", "10000")
+		v.Set("country", "all")
+		scrape(proxy.SOCKS5, &v)
+	}
+
+	idxrs[src] = &idx{
+		Period: 5 * time.Minute,
+		F:      run,
+	}
 }

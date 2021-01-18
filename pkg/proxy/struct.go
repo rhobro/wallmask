@@ -2,29 +2,35 @@ package proxy
 
 import (
 	"fmt"
+	"log"
 	"net/url"
 	"strconv"
 	"strings"
 )
 
+const (
+	HTTP   Protocol = "http"
+	SOCKS5 Protocol = "socks5"
+)
+
+type Protocol string
+
 type Proxy struct {
-	IPv4 string
-	Port uint16
+	Protocol Protocol
+	IPv4     string
+	Port     uint16
 }
 
 // fmt.Stringer
 func (p *Proxy) String() string {
-	if p.Port != 0 {
-		return fmt.Sprintf("http://%s:%d", p.IPv4, p.Port)
-	} else {
-		return fmt.Sprintf("http://%s", p.IPv4)
-	}
+	return fmt.Sprintf("%s://%s:%d", p.Protocol, p.IPv4, p.Port)
 }
 
 func (p *Proxy) URL() (*url.URL, error) {
 	return url.Parse(p.String())
 }
 
+// Parse addresses in format ip:port
 func New(raw string) (p *Proxy) {
 	// Check if ip is valid and has port
 	if strings.Count(raw, ".") == 3 && strings.Count(raw, ":") == 1 {
@@ -33,6 +39,7 @@ func New(raw string) (p *Proxy) {
 		if len(spl) == 2 {
 			port, err := strconv.Atoi(spl[1])
 			if err != nil {
+				log.Printf("invalid proxy raw string %s: %s", raw, err)
 				return
 			}
 

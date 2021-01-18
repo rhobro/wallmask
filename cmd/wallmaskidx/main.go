@@ -3,7 +3,10 @@ package main
 import (
 	"bufio"
 	"github.com/Bytesimal/goutils/pkg/fileio"
+	"log"
 	"os"
+	"runtime"
+	"strings"
 	"wallmask/internal/idx"
 )
 
@@ -14,7 +17,14 @@ func init() {
 func main() {
 	// Start indexing
 	idx.Index()
+
 	// Wait until user clicks enter
 	rd := bufio.NewScanner(os.Stdin)
-	rd.Scan()
+	for rd.Scan() {
+		if strings.Contains(rd.Text(), "q") {
+			break
+		} else {
+			log.Printf("n Goroutines: %d", runtime.NumGoroutine())
+		}
+	}
 }

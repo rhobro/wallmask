@@ -18,49 +18,43 @@ import (
 
 func init() {
 	src := "openproxy.space"
+	base, _ := url.Parse("https://api.openproxy.space/list")
+	listBase := "https://api.openproxy.space/list/"
+	// Planners
+	var latest int64
+	var firstIdxd bool
+
+	// structs
+	type index struct {
+		Protocols     []int  `json:"protocols"`
+		Anons         []int  `json:"anons"`
+		Code          string `json:"code"`
+		WithCountries bool   `json:"withCountries"`
+		Date          int64  `json:"date"`
+	}
+	type countryList struct {
+		Anons     []int `json:"anons"`
+		Countries []struct {
+			Proxies []string `json:"items"`
+		} `json:"data"`
+	}
+	type longList struct {
+		Anons   []int    `json:"anons"`
+		Proxies []string `json:"data"`
+	}
+
+	// constants
+	const (
+		HTTP = iota + 1
+		HTTPS
+		SOCKS5 = iota + 2
+	)
+
 	run := func() {
-		base := "https://api.openproxy.space/list?"
-		listBase := "https://api.openproxy.space/list/"
-		refreshDuration := 12 * time.Hour
-		t := time.NewTicker(refreshDuration)
-
-		// structs for json unmarshal
-		type index struct {
-			Protocols []int  `json:"protocols"`
-			Count     int    `json:"count"`
-			Code      string `json:"code"`
-			Time      int64  `json:"date"`
-		}
-		type countryList struct {
-			Anons     []int `json:"anons"`
-			Countries []struct {
-				URLs []string `json:"items"`
-			} `json:"data"`
-		}
-		type plainList struct {
-			Anons []int    `json:"anons"`
-			Data  []string `json:"data"`
-		}
-		// planners
-		var latest int64
-		var firstIndexed bool
-
-		// Index all proxies
-		v := url.Values{}
-		v.Set("ts", strconv.FormatInt(time.Now().UnixNano()/1000000, 10))
-
-		// Loop to get index urls and keep looping for first page after 1 full idx run through
-		var n int
+		var skip int
 		for {
-			// Get params for index urls
-			v.Set("skip", strconv.Itoa(n))
-
-			if firstIndexed {
-				<-t.C
-			}
-
-			// Request
-			rq, _ := http.NewRequest("GET", base+v.Encode(), nil)
+			base.RawQuery = rawQuery(skip)
+			rq, _ := http.NewRequest("GET", base.String(), nil)
 			rq.Header.Set("User-Agent", httputil.RandUA())
 			rsp, err := httputil.RQUntil(http.DefaultClient, rq)
 			if err != nil {
@@ -74,7 +68,7 @@ func init() {
 			}
 			rsp.Body.Close()
 
-			// Parse JSON
+			// Parse JSON lists of lists
 			var lists []index
 			err = json.Unmarshal(bd, &lists)
 			if err != nil {
@@ -97,89 +91,92 @@ func init() {
 				continue
 			}
 
-			// stop loop if all have been indexed
 			if len(lists) == 0 {
-				n = 0
-				firstIndexed = true
-				continue
+				firstIdxd = true
+				break
 			}
+			skip += len(lists)
 
-			for _, lSrc := range lists {
-				// Update latest
-				if lSrc.Time > latest {
-					latest = lSrc.Time
-				} else {
-					if firstIndexed {
-						continue
-					}
+			// iterate through index
+			for _, l := range lists {
+				var sch proxy.Protocol
+				if coll.ContainsInt(l.Protocols, HTTP) || coll.ContainsInt(l.Protocols, HTTPS) {
+					sch = proxy.HTTP
+				} else if coll.ContainsInt(l.Protocols, SOCKS5) {
+					sch = proxy.SOCKS5
 				}
 
-				// Choose http(s) proxies
-				if coll.ContainsInt(lSrc.Protocols, 1) || coll.ContainsInt(lSrc.Protocols, 2) &&
-					lSrc.Count > 0 {
-					// get JSON for countryList
-					rq, _ := http.NewRequest("GET", listBase+lSrc.Code, nil)
+				if sch != "" {
+					// update planners
+					if l.Date > latest {
+						latest = l.Date
+					} else {
+						if firstIdxd {
+							return
+						}
+					}
+
+					rq, _ := http.NewRequest("GET", listBase+l.Code, nil)
 					rq.Header.Set("User-Agent", httputil.RandUA())
 					rsp, err := httputil.RQUntil(http.DefaultClient, rq)
 					if err != nil {
-						proxyErr(src, fmt.Errorf("rq proxies in countryList: %s", err))
+						proxyErr(src, fmt.Errorf("rq proxies in list %s: %s", l.Code, err))
 						continue
 					}
 					bd, err := ioutil.ReadAll(rsp.Body)
 					if err != nil {
-						proxyErr(src, fmt.Errorf("reading proxies in countryList: %s", err))
+						proxyErr(src, fmt.Errorf("reading proxies in list: %s", err))
 						continue
 					}
-					rsp.Body.Close()
 
-					// Parse JSON
-					var l countryList
-					err = json.Unmarshal(bd, &l)
-					if err != nil {
-						// Try use plainList
-						var l plainList
-						err = json.Unmarshal(bd, &l)
+					// Unmarshal
+					var ps []*proxy.Proxy
+					if l.WithCountries {
+						var cList countryList
+						err := json.Unmarshal(bd, &cList)
 						if err != nil {
-							// If both formats don't work
-							// Save json in tmp file for post debugging
-							f, fErr := ioutil.TempFile(fileio.TmpDir, "openproxy.space_json_*.json")
+							proxyErr(src, fmt.Errorf("unmarshaling with countries list: %s", err))
+						}
 
-							if fErr != nil {
-								proxyErr(src, fmt.Errorf("creating temp file at %s: %s\n", fileio.TmpDir, err))
-							} else {
-								_, cErr := io.Copy(f, bytes.NewReader(bd))
-
-								if cErr != nil {
-									proxyErr(src, fmt.Errorf("copying json into tmpfile at %s: %s\n", f.Name(), cErr))
-								} else {
-									proxyErr(src, fmt.Errorf("unmarshaling proxies from countryList, json at %s: %s", f.Name(), err))
-								}
-								f.Close()
+						// add
+						for _, country := range cList.Countries {
+							for _, raw := range country.Proxies {
+								p := proxy.New(raw)
+								p.Protocol = sch
+								ps = append(ps, p)
 							}
-
-							continue
 						}
 
-						// Index from plain list
-						for _, raw := range l.Data {
-							Add(proxy.New(raw))
+					} else {
+						var list longList
+						err := json.Unmarshal(bd, &list)
+						if err != nil {
+							proxyErr(src, fmt.Errorf("unmarshaling without countries list: %s", err))
+						}
+
+						// add
+						ps := make([]*proxy.Proxy, len(list.Proxies), len(list.Proxies))
+						for i, raw := range list.Proxies {
+							p := proxy.New(raw)
+							p.Protocol = sch
+							ps[i] = p
 						}
 					}
-
-					// Go through lists
-					for _, country := range l.Countries {
-						for _, raw := range country.URLs {
-							Add(proxy.New(raw))
-						}
-					}
+					AddBatch(ps)
 				}
-			}
-
-			if !firstIndexed {
-				n += len(lists)
 			}
 		}
 	}
 
-	addFuncs[src] = run
+	idxrs[src] = &idx{
+		Period: 12 * time.Hour,
+		F:      run,
+	}
+}
+
+func rawQuery(skip int) string {
+	v := url.Values{}
+	v.Set("skip", strconv.Itoa(skip))
+	v.Set("ts", strconv.FormatInt(time.Now().UnixNano()/1000000, 10))
+	return v.Encode()
 }

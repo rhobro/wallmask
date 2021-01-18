@@ -19,6 +19,7 @@ var reqTables = map[string]string{
 	"proxies": `
 		CREATE TABLE proxies (
     		id SMALLSERIAL PRIMARY KEY,
+			protocol TEXT NOT NULL,
     		ipv4 TEXT NOT NULL,
     		port INT,
     		lastTested TIMESTAMP,
@@ -68,6 +69,19 @@ func Exec(sql string, args ...interface{}) {
 	rs.Close()
 }
 
+// Execute batch queries
+func BatchExec(b *pgx.Batch) {
+	br := db.SendBatch(context.Background(), b)
+	defer br.Close()
+	for {
+		_, err := br.Exec()
+		if err != nil {
+			break
+		}
+	}
+	return
+}
+
 // Utility interface for db.Query
 //
 // Query executes sql with args. If there is an error the returned Rows will be returned in an error state. So it is
@@ -82,6 +96,22 @@ func Query(sql string, args ...interface{}) pgx.Rows {
 		log.Printf("{db} query %s: %s", sql, err)
 	}
 	return rs
+}
+
+// Query batch queries
+func BatchQuery(b *pgx.Batch) (rss []pgx.Rows) {
+	rss = make([]pgx.Rows, b.Len(), b.Len())
+	br := db.SendBatch(context.Background(), b)
+	defer br.Close()
+	for i := 0; i < b.Len(); i++ {
+		rs, err := br.Query()
+		if err != nil {
+			log.Printf("can't query batch rows: %s", err)
+			break
+		}
+		rss[i] = rs
+	}
+	return
 }
 
 func query(sql string, args ...interface{}) (pgx.Rows, error) {

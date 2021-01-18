@@ -8,4 +8,4 @@ services:
       - "26257:26257"
       - "8080:8080"
     volumes:
-      - "/Users/mavicmaverick/cockroach-data:/cockroach/cockroach-data"
+      - "/Users/robro/opt/cockroach-data:/cockroach/cockroach-data"

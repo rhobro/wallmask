@@ -1,19 +1,24 @@
 package main
 
 import (
-	"net/http"
-	"net/url"
+	"fmt"
+	"github.com/Bytesimal/goutils/pkg/httputil"
+	"time"
 )
 
-func init() {
-	u, _ := url.Parse("http://localhost:9090")
-	http.DefaultClient = &http.Client{
-		Transport: &http.Transport{
-			Proxy: http.ProxyURL(u),
-		},
-	}
-}
-
 func main() {
+	const nSamples = 100
 
+	var durs []time.Duration
+	for i := 0; i < nSamples; i++ {
+		s := time.Now()
+		httputil.RandUA()
+		durs = append(durs, time.Since(s))
+	}
+	fmt.Println(durs)
+	var tot time.Duration
+	for _, d := range durs {
+		tot += d
+	}
+	fmt.Println(tot / nSamples)
 }

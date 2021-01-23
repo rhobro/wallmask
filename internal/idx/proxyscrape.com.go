@@ -27,7 +27,6 @@ func init() {
 		}
 		rd := bufio.NewReader(rsp.Body)
 
-		var ps []*proxy.Proxy
 		for {
 			line, err := rd.ReadString('\n')
 			// Check for EOF or error
@@ -42,10 +41,9 @@ func init() {
 			// add after parsing string
 			p := proxy.New(line)
 			p.Protocol = sch
-			ps = append(ps, p)
+			Add(p)
 		}
 		rsp.Body.Close()
-		AddBatch(ps)
 	}
 
 	run := func() {
@@ -67,6 +65,6 @@ func init() {
 
 	idxrs[src] = &idx{
 		Period: 5 * time.Minute,
-		F:      run,
+		run:    run,
 	}
 }

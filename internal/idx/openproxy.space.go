@@ -130,7 +130,6 @@ func init() {
 					}
 
 					// Unmarshal
-					var ps []*proxy.Proxy
 					if l.WithCountries {
 						var cList countryList
 						err := json.Unmarshal(bd, &cList)
@@ -143,7 +142,7 @@ func init() {
 							for _, raw := range country.Proxies {
 								p := proxy.New(raw)
 								p.Protocol = sch
-								ps = append(ps, p)
+								Add(p)
 							}
 						}
 
@@ -155,14 +154,12 @@ func init() {
 						}
 
 						// add
-						ps := make([]*proxy.Proxy, len(list.Proxies), len(list.Proxies))
-						for i, raw := range list.Proxies {
+						for _, raw := range list.Proxies {
 							p := proxy.New(raw)
 							p.Protocol = sch
-							ps[i] = p
+							Add(p)
 						}
 					}
-					AddBatch(ps)
 				}
 			}
 		}
@@ -170,7 +167,7 @@ func init() {
 
 	idxrs[src] = &idx{
 		Period: 12 * time.Hour,
-		F:      run,
+		run:    run,
 	}
 }
 

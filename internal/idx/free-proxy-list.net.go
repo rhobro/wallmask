@@ -23,26 +23,23 @@ func init() {
 			proxyErr(src, fmt.Errorf("rq for list page: %s", err))
 			return
 		}
+		defer rsp.Body.Close()
 		page, err := goquery.NewDocumentFromReader(rsp.Body)
 		if err != nil {
 			proxyErr(src, fmt.Errorf("parse page HTML: %s", err))
 			return
 		}
-		rsp.Body.Close()
 
 		rawList := strings.Split(page.Find("div.modal-body > textarea").Get(0).FirstChild.Data, "\n\n")[1]
-		spl := strings.Split(strings.TrimSpace(rawList), "\n")
-		ps := make([]*proxy.Proxy, len(spl), len(spl))
-		for i, line := range spl {
+		for _, line := range strings.Split(strings.TrimSpace(rawList), "\n") {
 			p := proxy.New(line)
 			p.Protocol = proxy.HTTP
-			ps[i] = p
+			Add(p)
 		}
-		AddBatch(ps)
 	}
 
 	idxrs[src] = &idx{
 		Period: 30 * time.Minute,
-		F:      run,
+		run:    run,
 	}
 }

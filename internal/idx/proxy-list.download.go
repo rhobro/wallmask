@@ -26,29 +26,26 @@ func init() {
 			proxyErr(src, fmt.Errorf("rq for list page: %s", err))
 			return
 		}
+		defer rsp.Body.Close()
 		page, err := goquery.NewDocumentFromReader(rsp.Body)
 		if err != nil {
 			proxyErr(src, fmt.Errorf("parse page HTML: %s", err))
 			return
 		}
-		rsp.Body.Close()
 
-		sl := page.Find("table#tbl > tbody > tr")
-		ps := make([]*proxy.Proxy, sl.Length(), sl.Length())
-		sl.Each(func(i int, sl *goquery.Selection) {
+		page.Find("table#tbl > tbody > tr").Each(func(i int, sl *goquery.Selection) {
 			ip := sl.Find("td").Get(0).FirstChild.Data
 			port, err := strconv.Atoi(sl.Find("td").Get(1).FirstChild.Data)
 			if err != nil {
 				return
 			}
 
-			ps[i] = &proxy.Proxy{
+			Add(&proxy.Proxy{
 				Protocol: sch,
 				IPv4:     ip,
 				Port:     uint16(port),
-			}
+			})
 		})
-		AddBatch(ps)
 	}
 
 	run := func() {
@@ -59,6 +56,6 @@ func init() {
 
 	idxrs[src] = &idx{
 		Period: time.Hour,
-		F:      run,
+		run:    run,
 	}
 }

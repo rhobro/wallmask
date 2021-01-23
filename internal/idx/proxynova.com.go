@@ -31,7 +31,6 @@ func init() {
 		}
 		rsp.Body.Close()
 
-		var ps []*proxy.Proxy
 		page.Find("table.table > tbody > tr").Each(func(i int, sl *goquery.Selection) {
 			if sl.Find("td > abbr > script").Length() > 0 {
 				ip := sl.Find("td > abbr > script").Get(0).FirstChild.Data
@@ -43,17 +42,16 @@ func init() {
 					return
 				}
 
-				ps = append(ps, &proxy.Proxy{
+				Add(&proxy.Proxy{
 					IPv4: ip,
 					Port: uint16(port),
 				})
 			}
 		})
-		AddBatch(ps)
 	}
 
 	idxrs[src] = &idx{
 		Period: time.Minute,
-		F:      run,
+		run:    run,
 	}
 }

@@ -26,23 +26,20 @@ func init() {
 			proxyErr(src, fmt.Errorf("rq for page list page: %s", err))
 			return
 		}
+		defer rsp.Body.Close()
 		page, err := goquery.NewDocumentFromReader(rsp.Body)
 		if err != nil {
 			proxyErr(src, fmt.Errorf("parse HTML from page: %s", err))
 			return
 		}
-		rsp.Body.Close()
 
 		// Process
 		sl := page.Find("textarea#rawData")
 		if sl.Length() > 0 {
 			raw := strings.TrimSpace(sl.Get(0).FirstChild.Data)
-			spl := strings.Split(raw, "\n")
-			ps := make([]*proxy.Proxy, len(spl), len(spl))
-			for i, line := range strings.Split(raw, "\n") {
-				ps[i] = proxy.New(line)
+			for _, line := range strings.Split(raw, "\n") {
+				Add(proxy.New(line))
 			}
-			AddBatch(ps)
 		} else {
 			f, err := ioutil.TempFile(fileio.TmpDir, "coderduck.com_*.html")
 			if err != nil {
@@ -61,8 +58,9 @@ func init() {
 		}
 	}
 
-	idxrs[src] = &idx{
+	//idxrs[src] = &idx{
+	_ = &idx{
 		Period: 10 * time.Minute,
-		F:      run,
+		run:    run,
 	}
 }

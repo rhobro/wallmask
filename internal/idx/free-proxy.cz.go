@@ -11,7 +11,6 @@ import (
 	"regexp"
 	"strconv"
 	"time"
-	"wallmask/pkg/proxy"
 )
 
 func init() {
@@ -38,7 +37,6 @@ func init() {
 				continue
 			}
 			rsp.Body.Close()
-			z
 			page.Find("table#proxy_list > tbody > tr").Each(func(i int, sl *goquery.Selection) {
 				if node := sl.Find("td > script"); node.Length() > 0 {
 					raw := string(extractB64RGX.Find([]byte(node.Get(0).FirstChild.Data)))
@@ -55,7 +53,7 @@ func init() {
 						return
 					}
 
-					ps = append(ps, &proxy.Proxy{
+					Add(&proxy.Proxy{
 						IPv4: string(ipBytes),
 						Port: uint16(port),
 					})
@@ -67,6 +65,6 @@ func init() {
 
 	idxrs[src] = &idx{
 		Period: time.Hour,
-		F:      run,
+		run:    run,
 	}
 }

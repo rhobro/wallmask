@@ -18,7 +18,7 @@ func init() {
 		proxy.SOCKS5: "https://www.my-proxy.com/free-socks-5-proxy.html",
 	}
 
-	scrape := func(sch proxy.Protocol, base string) {
+	scrape := func(proto proxy.Protocol, base string) {
 		// Request
 		rq, _ := http.NewRequest("GET", base, nil)
 		rq.Header.Set("User-Agent", httputil.RandUA())
@@ -27,18 +27,16 @@ func init() {
 			proxyErr(src, fmt.Errorf("rq for list page: %s", err))
 			return
 		}
+		defer rsp.Body.Close()
 		page, err := goquery.NewDocumentFromReader(rsp.Body)
 		if err != nil {
 			proxyErr(src, fmt.Errorf("parse page with goquery: %s", err))
 			return
 		}
-		rsp.Body.Close()
 
 		// Recursively extract elements
-		var ps []*proxy.Proxy
-		recursiveExtract(sch, &ps, page.Find("div.list").Get(0).FirstChild)
-		recursiveExtract(sch, &ps, page.Find("div.to-lock").Get(0).FirstChild)
-		AddBatch(ps)
+		recursiveExtract(proto, page.Find("div.list").Get(0).FirstChild)
+		recursiveExtract(proto, page.Find("div.to-lock").Get(0).FirstChild)
 	}
 
 	run := func() {
@@ -49,11 +47,11 @@ func init() {
 
 	idxrs[src] = &idx{
 		Period: 10 * time.Minute,
-		F:      run,
+		run:    run,
 	}
 }
 
-func recursiveExtract(sch proxy.Protocol, dstPs *[]*proxy.Proxy, n *html.Node) {
+func recursiveExtract(proto proxy.Protocol, n *html.Node) {
 	// Process text
 	if n.Data != "br" {
 		d := n.Data
@@ -64,13 +62,13 @@ func recursiveExtract(sch proxy.Protocol, dstPs *[]*proxy.Proxy, n *html.Node) {
 
 		p := proxy.New(d)
 		if p != nil {
-			p.Protocol = sch
-			*dstPs = append(*dstPs, p)
+			p.Protocol = proto
+			Add(p)
 		}
 	}
 
 	// Move onto next sibling
 	if n.NextSibling != nil && n.NextSibling.Data != "div" {
-		recursiveExtract(sch, dstPs, n.NextSibling)
+		recursiveExtract(proto, n.NextSibling)
 	}
 }

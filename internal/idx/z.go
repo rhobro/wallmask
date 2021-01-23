@@ -27,8 +27,6 @@ func (i *idx) F() {
 
 var idxrs = make(map[string]*idx)
 
-const nTestWorkers = 10
-
 func Index() {
 	// launch idx scheduler
 	go scheduler()
@@ -39,9 +37,6 @@ func scheduler() {
 	// launch db testers
 	go dbTest(true)
 	go dbTest(false)
-	for i := 0; i < nTestWorkers; i++ {
-		go dbTestWorker()
-	}
 
 	for {
 		for _, i := range idxrs {
@@ -111,13 +106,6 @@ func details(p *proxy.Proxy) *detailStruct {
 	}
 }
 
-type testInst struct {
-	ID int64
-	P  *proxy.Proxy
-}
-
-var testPipe = make(chan testInst, maxConcurrentTests)
-
 func dbTest(working bool) {
 	for {
 		// test Proxies
@@ -137,25 +125,15 @@ func dbTest(working bool) {
 				continue
 			}
 
-			testPipe <- testInst{
-				ID: id,
-				P:  &p,
-			}
+			last, ok := test(&p)
+			db.Exec(sqlUpdate, last, ok, id)
 		}
 		rs.Close()
 	}
 }
 
-func dbTestWorker() {
-	for i := range testPipe {
-		last, ok := test(i.P)
-		db.Exec(sqlUpdate, last, ok, i.ID)
-	}
-}
-
 const (
-	testTimeout        = 1 * time.Second
-	maxConcurrentTests = 250
+	testTimeout = 1 * time.Second
 )
 
 var protocols = []proxy.Protocol{proxy.HTTP, proxy.SOCKS5}
@@ -184,8 +162,6 @@ func test(p *proxy.Proxy) (lastTested time.Time, ok bool) {
 	return
 }
 
-//var testSemaphore = make(chan struct{}, maxConcurrentTests)
-
 func testRQ(p *proxy.Proxy) (lastTested time.Time, ok bool) {
 	u, err := p.URL()
 	if err == nil {
@@ -196,10 +172,9 @@ func testRQ(p *proxy.Proxy) (lastTested time.Time, ok bool) {
 			},
 			Timeout: testTimeout,
 		}
+		defer cli.CloseIdleConnections()
 
-		//testSemaphore <- struct{}{}
 		rsp, err := cli.Get("https://bytesimal.github.io/test")
-		//<-testSemaphore
 		lastTested = time.Now()
 		if err != nil {
 			return

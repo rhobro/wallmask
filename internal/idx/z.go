@@ -107,7 +107,10 @@ func details(p *proxy.Proxy) *detailStruct {
 }
 
 // To ensure that proxies are not overtested repeatedly
-const minTestInterval = 5 * time.Second
+const (
+	minTestInterval = 5 * time.Second
+	nTestRetries    = 5
+)
 
 func dbTest(working bool) {
 	t := time.NewTicker(minTestInterval)
@@ -130,7 +133,15 @@ func dbTest(working bool) {
 				continue
 			}
 
-			last, ok := test(&p)
+			// test with optional retries
+			var last time.Time
+			var ok bool
+			for i := 0; i < nTestRetries; i++ {
+				last, ok = test(&p)
+				if ok {
+					break
+				}
+			}
 			db.Exec(sqlUpdate, last, ok, id)
 		}
 		rs.Close()

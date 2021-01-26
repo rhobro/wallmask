@@ -3,6 +3,7 @@ package idx
 import (
 	"bytes"
 	"crypto/tls"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -35,8 +36,8 @@ func Index() {
 
 func scheduler() {
 	// launch db testers
-	go dbTest(true)
-	go dbTest(false)
+	go dbTest(true, ASC)
+	go dbTest(false, DESC)
 
 	for {
 		for _, i := range idxrs {
@@ -107,21 +108,23 @@ func details(p *proxy.Proxy) *detailStruct {
 }
 
 // To ensure that proxies are not overtested repeatedly
+const nTestRetries = 5
+
+type sqlOrder string
+
 const (
-	minTestInterval = 5 * time.Second
-	nTestRetries    = 5
+	ASC  sqlOrder = "ASC"
+	DESC sqlOrder = "DESC"
 )
 
-func dbTest(working bool) {
-	t := time.NewTicker(minTestInterval)
-
+func dbTest(working bool, order sqlOrder) {
 	for {
 		// test Proxies
-		rs := db.Query(`
+		rs := db.Query(fmt.Sprintf(`
 				SELECT id, protocol, ipv4, port
 				FROM proxies
 				WHERE working = $1
-				ORDER BY lastTested;`, working)
+				ORDER BY lastTested %s;`, order), working)
 
 		// get proxy and test
 		for rs.Next() {
@@ -142,11 +145,12 @@ func dbTest(working bool) {
 					break
 				}
 			}
-			db.Exec(sqlUpdate, last, ok, id)
+
+			if ok || working {
+				db.Exec(sqlUpdate, last, ok, id) // only update if positive test or if working proxy fails
+			}
 		}
 		rs.Close()
-
-		<-t.C
 	}
 }
 
@@ -165,7 +169,7 @@ func test(p *proxy.Proxy) (lastTested time.Time, ok bool) {
 			// test
 			lastTested, ok = testRQ(p)
 			if ok {
-				break
+				return
 			}
 		}
 		// nil proto if none - must test later
@@ -180,17 +184,18 @@ func test(p *proxy.Proxy) (lastTested time.Time, ok bool) {
 	return
 }
 
+var cli = &http.Client{
+	Transport: &http.Transport{
+		TLSClientConfig: &tls.Config{},
+		MaxIdleConns:    1, // automatic idle connection disabling
+	},
+	Timeout: testTimeout,
+}
+
 func testRQ(p *proxy.Proxy) (lastTested time.Time, ok bool) {
 	u, err := p.URL()
 	if err == nil {
-		cli := &http.Client{
-			Transport: &http.Transport{
-				Proxy:           http.ProxyURL(u),
-				TLSClientConfig: &tls.Config{},
-			},
-			Timeout: testTimeout,
-		}
-		defer cli.CloseIdleConnections()
+		cli.Transport.(*http.Transport).Proxy = http.ProxyURL(u)
 
 		rsp, err := cli.Get("https://bytesimal.github.io/test")
 		lastTested = time.Now()

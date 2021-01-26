@@ -106,7 +106,12 @@ func details(p *proxy.Proxy) *detailStruct {
 	}
 }
 
+// To ensure that proxies are not overtested repeatedly
+const minTestInterval = 5 * time.Second
+
 func dbTest(working bool) {
+	t := time.NewTicker(minTestInterval)
+
 	for {
 		// test Proxies
 		rs := db.Query(`
@@ -129,6 +134,8 @@ func dbTest(working bool) {
 			db.Exec(sqlUpdate, last, ok, id)
 		}
 		rs.Close()
+
+		<-t.C
 	}
 }
 

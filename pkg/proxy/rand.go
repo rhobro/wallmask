@@ -36,15 +36,22 @@ func Init(bufSize int) {
 			}
 		}
 	}()
+
+	// wait till until 1 entry
+	for len(proxyStream) == 0 {
+		continue
+	}
+	log.Print("{wallmask} connected")
 }
 
 var proxyStream chan string
 
 func Rand() func(*http.Request) (*url.URL, error) {
-	return func(r *http.Request) (*url.URL, error) {
+	return func(r *http.Request) (u *url.URL, err error) {
 		if proxyStream == nil {
 			Init(defBufSize)
 		}
-		return url.Parse(<-proxyStream)
+		s := <-proxyStream
+		return url.Parse(s)
 	}
 }

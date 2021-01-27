@@ -31,7 +31,7 @@ var idxrs = make(map[string]*idx)
 func Index() {
 	// launch idx scheduler
 	go scheduler()
-	log.Println("{proxy} Initialized")
+	log.Print("{proxy} Initialized")
 }
 
 func scheduler() {
@@ -85,7 +85,7 @@ type detailStruct struct {
 }
 
 func details(p *proxy.Proxy) *detailStruct {
-	// test
+	// wmclitest
 	last, ok := test(p)
 
 	// check if already exists
@@ -107,8 +107,8 @@ func details(p *proxy.Proxy) *detailStruct {
 	}
 }
 
-// To ensure that proxies are not overtested repeatedly
-const nTestRetries = 5
+// To ensure that proxies are not over-tested repeatedly
+const nTestRetries = 10
 
 type sqlOrder string
 
@@ -119,24 +119,24 @@ const (
 
 func dbTest(working bool, order sqlOrder) {
 	for {
-		// test Proxies
+		// wmclitest Proxies
 		rs := db.Query(fmt.Sprintf(`
 				SELECT id, protocol, ipv4, port
 				FROM proxies
 				WHERE working = $1
 				ORDER BY lastTested %s;`, order), working)
 
-		// get proxy and test
+		// get proxy and wmclitest
 		for rs.Next() {
 			var p proxy.Proxy
 			var id int64
 			err := rs.Scan(&id, &p.Protocol, &p.IPv4, &p.Port)
 			if err != nil {
-				log.Printf("querying proxies for update test: %s", err)
+				log.Printf("querying proxies for update wmclitest: %s", err)
 				continue
 			}
 
-			// test with optional retries
+			// wmclitest with optional retries
 			var last time.Time
 			var ok bool
 			for i := 0; i < nTestRetries; i++ {
@@ -147,7 +147,7 @@ func dbTest(working bool, order sqlOrder) {
 			}
 
 			if ok || working {
-				db.Exec(sqlUpdate, last, ok, id) // only update if positive test or if working proxy fails
+				db.Exec(sqlUpdate, last, ok, id) // only update if positive wmclitest or if working proxy fails
 			}
 		}
 		rs.Close()
@@ -163,16 +163,16 @@ var protocols = []proxy.Protocol{proxy.HTTP, proxy.SOCKS5}
 func test(p *proxy.Proxy) (lastTested time.Time, ok bool) {
 	// if no protocol
 	if p.Protocol == "" {
-		// test each protocol
+		// wmclitest each protocol
 		for _, sc := range protocols {
 			p.Protocol = sc
-			// test
+			// wmclitest
 			lastTested, ok = testRQ(p)
 			if ok {
 				return
 			}
 		}
-		// nil proto if none - must test later
+		// nil proto if none - must wmclitest later
 		if !ok {
 			p.Protocol = ""
 		}
@@ -197,7 +197,7 @@ func testRQ(p *proxy.Proxy) (lastTested time.Time, ok bool) {
 	if err == nil {
 		cli.Transport.(*http.Transport).Proxy = http.ProxyURL(u)
 
-		rsp, err := cli.Get("https://bytesimal.github.io/test")
+		rsp, err := cli.Get("https://bytesimal.github.io/wmclitest")
 		lastTested = time.Now()
 		if err != nil {
 			return
@@ -205,7 +205,7 @@ func testRQ(p *proxy.Proxy) (lastTested time.Time, ok bool) {
 		defer rsp.Body.Close()
 		bd, err := ioutil.ReadAll(rsp.Body)
 		if err != nil {
-			log.Printf("can't read rsp of test page with proxy %s: %s", p, err)
+			log.Printf("can't read rsp of wmclitest page with proxy %s: %s", p, err)
 			return
 		}
 		ok = bytes.Contains(bd, []byte("TEST PAGE"))

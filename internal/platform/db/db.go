@@ -9,7 +9,7 @@ import (
 	"log"
 )
 
-// DSN to connect to test CockroachDB
+// DSN to connect to wmclitest CockroachDB
 const url = "postgres://root@localhost:26257/wallmask"
 
 // Concurrency-safe pgxpool.Pool instead of pgx.Conn
@@ -34,7 +34,6 @@ func init() {
 	if err != nil {
 		log.Fatalf("{db} open connection to db: %s\n", err)
 	}
-	log.Println("{db} Connected")
 
 	// List tables
 	var tables []string

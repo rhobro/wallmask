@@ -11,7 +11,7 @@ import (
 )
 
 func init() {
-	fileio.Init("", "wallmaskidx")
+	fileio.Init("", "wmidx")
 }
 
 func main() {

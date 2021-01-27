@@ -1,3 +1,5 @@
 /planning/
 /.idea/
 /bin/
+/.run/
+/cmd/test/

@@ -1,20 +1,24 @@
 package proxy
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"net/url"
+	"sync"
 	"wallmask/internal/platform/db"
 )
 
-const defBufSize = 25
+var bufSize = 25
 
-func Init(bufSize int) {
-	if bufSize < 0 {
-		panic(fmt.Sprintf("buffer size for proxies is too small: %d", bufSize))
-	}
+func Init(bSize int) {
+	bufSize = bSize
+	initOnce.Do(initialize)
+}
 
+// for lazy initialization
+var initOnce sync.Once
+
+func initialize() {
 	proxyStream = make(chan string, bufSize)
 	go func() {
 		for {
@@ -48,9 +52,7 @@ var proxyStream chan string
 
 func Rand() func(*http.Request) (*url.URL, error) {
 	return func(r *http.Request) (u *url.URL, err error) {
-		if proxyStream == nil {
-			Init(defBufSize)
-		}
+		initOnce.Do(initialize)
 		s := <-proxyStream
 		return url.Parse(s)
 	}

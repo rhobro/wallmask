@@ -23,7 +23,7 @@ func main() {
 		}
 
 		s := time.Now()
-		rsp, err := cli.Get("https://bytesimal.github.io/wmclitest")
+		rsp, err := cli.Get("https://bytesimal.github.io/test")
 		e := time.Now()
 		if err != nil {
 			log.Print(err)

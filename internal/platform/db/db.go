@@ -9,7 +9,7 @@ import (
 	"log"
 )
 
-// DSN to connect to wmclitest CockroachDB
+// DSN to connect to test CockroachDB
 const url = "postgres://root@localhost:26257/wallmask"
 
 // Concurrency-safe pgxpool.Pool instead of pgx.Conn

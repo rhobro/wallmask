@@ -3,7 +3,7 @@ module wallmask
 go 1.15
 
 require (
-	github.com/Bytesimal/goutils v1.0.11
+	github.com/Bytesimal/goutils v1.1.0
 	github.com/PuerkitoBio/goquery v1.6.0
 	github.com/jackc/pgconn v1.8.0
 	github.com/jackc/pgx/v4 v4.10.1

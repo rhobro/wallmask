@@ -3,7 +3,9 @@ package idx
 import (
 	"bytes"
 	"crypto/tls"
+	"encoding/json"
 	"fmt"
+	"github.com/Bytesimal/goutils/pkg/httputil"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -67,13 +69,15 @@ const (
 
 func Add(p *proxy.Proxy) {
 	if p != nil {
-		d := details(p)
-		if d.ID == -1 {
-			// Add to database if not in already
-			db.Exec(sqlInsert, p.Protocol, p.IPv4, p.Port, d.Last, d.Ok)
-		} else {
-			// Update last tested if already in db
-			db.Exec(sqlUpdate, d.Last, d.Ok, d.ID)
+		if httputil.IsValidIPv4(p.IPv4) {
+			d := details(p)
+			if d.ID == -1 {
+				// Add to database if not in already
+				db.Exec(sqlInsert, p.Protocol, p.IPv4, p.Port, d.Last, d.Ok)
+			} else {
+				// Update last tested if already in db
+				db.Exec(sqlUpdate, d.Last, d.Ok, d.ID)
+			}
 		}
 	}
 }
@@ -155,6 +159,30 @@ func dbTest(working bool, order sqlOrder) {
 }
 
 var protocols = []proxy.Protocol{proxy.HTTP, proxy.SOCKS5}
+var pubIP string
+
+// Get public ip to check with proxy tests
+func init() {
+	rsp, err := http.Get("https://api.ipify.org?format=json")
+	if err != nil {
+		log.Fatalf("can't get public ip: %s", err)
+	}
+	defer rsp.Body.Close()
+	bd, err := ioutil.ReadAll(rsp.Body)
+	if err != nil {
+		log.Fatalf("can't get public ip: %s", err)
+	}
+
+	type ipRsp struct {
+		IP string `json:"ip"`
+	}
+	var ip ipRsp
+	err = json.Unmarshal(bd, &ip)
+	if err != nil {
+		log.Fatalf("can't get public ip: %s", err)
+	}
+	pubIP = ip.IP
+}
 
 func test(p *proxy.Proxy) (lastTested time.Time, ok bool) {
 	// if no protocol
@@ -212,6 +240,56 @@ func testRQ(p *proxy.Proxy) (lastTested time.Time, ok bool) {
 	}
 	return
 }
+
+/*func testRQ(p *proxy.Proxy) (lastTested time.Time, ok bool) { TODO test with anonymous check
+	u, err := p.URL()
+	if err == nil {
+		cli := &http.Client{
+			Transport: &http.Transport{
+				Proxy:           http.ProxyURL(u),
+				TLSClientConfig: &tls.Config{},
+			},
+			Timeout: testTimeout,
+		}
+		defer cli.CloseIdleConnections()
+
+		rsp, err := cli.Get("https://whatismyipaddress.com/proxy-check")
+		lastTested = time.Now()
+		if err != nil {
+			return
+		}
+		defer rsp.Body.Close()
+		page, err := goquery.NewDocumentFromReader(rsp.Body)
+		if err != nil {
+			log.Printf("can't test parse html: %s", err)
+			return
+		}
+
+		var visibleIP string
+		var positive bool
+		page.Find("table > tbody > tr").Each(func(i int, sl *goquery.Selection) {
+			if i == 0 {
+				// get displayed ip
+				visibleIP = sl.Find("td").Get(1).FirstChild.Data
+				return
+			}
+
+			// get bools from table
+			rawBool := sl.Find("td > span").Text()
+			testResult, err := strconv.ParseBool(rawBool)
+			if err != nil {
+				log.Printf("can't parse bool %s: %s", rawBool, err)
+			}
+			positive = positive && testResult
+		})
+
+		ok = visibleIP != pubIP // && !positive TODO to only allow anonymous proxiesz
+
+	} else {
+		log.Printf("{proxy} can't parse url of proxy %s: %s", p.String(), err)
+	}
+	return
+}*/
 
 func proxyErr(src string, err error) {
 	log.Printf("{proxy} {%s} %s", src, err)

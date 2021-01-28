@@ -19,7 +19,7 @@ func Init(bSize int) {
 var initOnce sync.Once
 
 func initialize() {
-	proxyStream = make(chan string, bufSize)
+	proxies = make(chan *url.URL, bufSize)
 	go func() {
 		for {
 			// repeatedly query
@@ -36,24 +36,26 @@ func initialize() {
 				if err != nil {
 					log.Printf("can't loop through proxy rows: %s", err)
 				}
-				proxyStream <- p
+				u, err := url.Parse(p)
+				if err == nil {
+					proxies <- u
+				}
 			}
 		}
 	}()
 
 	// wait till until 1 entry
-	for len(proxyStream) == 0 {
+	for len(proxies) == 0 {
 		continue
 	}
 	log.Print("{wallmask} connected")
 }
 
-var proxyStream chan string
+var proxies chan *url.URL
 
 func Rand() func(*http.Request) (*url.URL, error) {
 	return func(r *http.Request) (u *url.URL, err error) {
 		initOnce.Do(initialize)
-		s := <-proxyStream
-		return url.Parse(s)
+		return <-proxies, nil
 	}
 }

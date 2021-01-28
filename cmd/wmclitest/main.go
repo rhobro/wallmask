@@ -23,7 +23,7 @@ func main() {
 		}
 
 		s := time.Now()
-		rsp, err := cli.Get("https://bytesimal.github.io/test")
+		rsp, err := cli.Get("https://whatismyipaddress.com/proxy-check")
 		e := time.Now()
 		if err != nil {
 			log.Print(err)

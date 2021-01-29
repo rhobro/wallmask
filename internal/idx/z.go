@@ -3,7 +3,6 @@ package idx
 import (
 	"bytes"
 	"crypto/tls"
-	"encoding/json"
 	"fmt"
 	"github.com/Bytesimal/goutils/pkg/httputil"
 	"io/ioutil"
@@ -13,6 +12,8 @@ import (
 	"wallmask/internal/platform/db"
 	"wallmask/pkg/proxy"
 )
+
+var idxrs = make(map[string]*idx)
 
 type idx struct {
 	Period time.Duration
@@ -28,8 +29,6 @@ func (i *idx) F() {
 	i.running = false
 }
 
-var idxrs = make(map[string]*idx)
-
 func Index() {
 	// launch idx scheduler
 	go scheduler()
@@ -40,6 +39,9 @@ func scheduler() {
 	// launch db testers
 	go dbTest(true, ASC)
 	go dbTest(false, DESC)
+	for i := 0; i < nTestWorkers; i++ {
+		go testWorker()
+	}
 
 	for {
 		for _, i := range idxrs {
@@ -82,13 +84,13 @@ func Add(p *proxy.Proxy) {
 	}
 }
 
-type detailStruct struct {
+type detail struct {
 	ID   int64
 	Last time.Time
 	Ok   bool
 }
 
-func details(p *proxy.Proxy) *detailStruct {
+func details(p *proxy.Proxy) *detail {
 	// test
 	last, ok := test(p)
 
@@ -104,7 +106,7 @@ func details(p *proxy.Proxy) *detailStruct {
 			log.Printf("scan result set of count occurences of %s: %s", p, err)
 		}
 	}
-	return &detailStruct{
+	return &detail{
 		ID:   id,
 		Last: last,
 		Ok:   ok,
@@ -112,7 +114,10 @@ func details(p *proxy.Proxy) *detailStruct {
 }
 
 // To ensure that proxies are not over-tested repeatedly
-const nTestRetries = 10
+const (
+	nTestRetries = 10
+	nTestWorkers = 50
+)
 
 type sqlOrder string
 
@@ -120,6 +125,14 @@ const (
 	ASC  sqlOrder = "ASC"
 	DESC sqlOrder = "DESC"
 )
+
+type testInst struct {
+	ID      int64
+	P       *proxy.Proxy
+	Working bool
+}
+
+var testPipe = make(chan *testInst, nTestWorkers)
 
 func dbTest(working bool, order sqlOrder) {
 	for {
@@ -140,49 +153,35 @@ func dbTest(working bool, order sqlOrder) {
 				continue
 			}
 
-			// test with optional retries
-			var last time.Time
-			var ok bool
-			for i := 0; i < nTestRetries; i++ {
-				last, ok = test(&p)
-				if ok {
-					break
-				}
-			}
-
-			if ok || working {
-				db.Exec(sqlUpdate, last, ok, id) // only update if positive test or if working proxy fails
+			testPipe <- &testInst{
+				ID:      id,
+				P:       &p,
+				Working: working,
 			}
 		}
 		rs.Close()
 	}
 }
 
-var protocols = []proxy.Protocol{proxy.HTTP, proxy.SOCKS5}
-var pubIP string
+func testWorker() {
+	for ti := range testPipe {
+		// test with optional retries
+		var last time.Time
+		var ok bool
+		for i := 0; i < nTestRetries; i++ {
+			last, ok = test(ti.P)
+			if ok {
+				break
+			}
+		}
 
-// Get public ip to check with proxy tests
-func init() {
-	rsp, err := http.Get("https://api.ipify.org?format=json")
-	if err != nil {
-		log.Fatalf("can't get public ip: %s", err)
+		if ok || ti.Working {
+			db.Exec(sqlUpdate, last, ok, ti.ID) // only update if positive test or if working proxy fails
+		}
 	}
-	defer rsp.Body.Close()
-	bd, err := ioutil.ReadAll(rsp.Body)
-	if err != nil {
-		log.Fatalf("can't get public ip: %s", err)
-	}
-
-	type ipRsp struct {
-		IP string `json:"ip"`
-	}
-	var ip ipRsp
-	err = json.Unmarshal(bd, &ip)
-	if err != nil {
-		log.Fatalf("can't get public ip: %s", err)
-	}
-	pubIP = ip.IP
 }
+
+var protocols = []proxy.Protocol{proxy.HTTP, proxy.SOCKS5}
 
 func test(p *proxy.Proxy) (lastTested time.Time, ok bool) {
 	// if no protocol
@@ -209,6 +208,31 @@ func test(p *proxy.Proxy) (lastTested time.Time, ok bool) {
 }
 
 const testTimeout = 1 * time.Second
+
+//var pubIP string
+
+// Get public ip to check with proxy tests
+/*func init() {
+	rsp, err := http.Get("https://api.ipify.org?format=json")
+	if err != nil {
+		log.Fatalf("can't get public ip: %s", err)
+	}
+	defer rsp.Body.Close()
+	bd, err := ioutil.ReadAll(rsp.Body)
+	if err != nil {
+		log.Fatalf("can't get public ip: %s", err)
+	}
+
+	type ipRsp struct {
+		IP string `json:"ip"`
+	}
+	var ip ipRsp
+	err = json.Unmarshal(bd, &ip)
+	if err != nil {
+		log.Fatalf("can't get public ip: %s", err)
+	}
+	pubIP = ip.IP
+}*/
 
 func testRQ(p *proxy.Proxy) (lastTested time.Time, ok bool) {
 	u, err := p.URL()

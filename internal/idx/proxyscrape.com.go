@@ -3,13 +3,13 @@ package idx
 import (
 	"bufio"
 	"fmt"
-	"github.com/Bytesimal/goutils/pkg/httputil"
+	"github.com/rhobro/goutils/pkg/httputil"
+	"github.com/rhobro/wallmask/pkg/proxy"
 	"io"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
-	"wallmask/pkg/proxy"
 )
 
 func init() {

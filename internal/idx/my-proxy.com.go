@@ -2,13 +2,13 @@ package idx
 
 import (
 	"fmt"
-	"github.com/Bytesimal/goutils/pkg/httputil"
 	"github.com/PuerkitoBio/goquery"
+	"github.com/rhobro/goutils/pkg/httputil"
+	"github.com/rhobro/wallmask/pkg/proxy"
 	"golang.org/x/net/html"
 	"net/http"
 	"strings"
 	"time"
-	"wallmask/pkg/proxy"
 )
 
 func init() {

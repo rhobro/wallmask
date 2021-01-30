@@ -5,8 +5,8 @@ package idx
 import (
 	"encoding/base64"
 	"fmt"
-	"github.com/Bytesimal/goutils/pkg/httputil"
 	"github.com/PuerkitoBio/goquery"
+	"github.com/rhobro/goutils/pkg/httputil"
 	"net/http"
 	"regexp"
 	"strconv"

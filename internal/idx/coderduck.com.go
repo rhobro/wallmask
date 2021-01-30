@@ -2,15 +2,15 @@ package idx
 
 import (
 	"fmt"
-	"github.com/Bytesimal/goutils/pkg/fileio"
-	"github.com/Bytesimal/goutils/pkg/httputil"
 	"github.com/PuerkitoBio/goquery"
+	"github.com/rhobro/goutils/pkg/fileio"
+	"github.com/rhobro/goutils/pkg/httputil"
+	"github.com/rhobro/wallmask/pkg/proxy"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"strings"
 	"time"
-	"wallmask/pkg/proxy"
 )
 
 func init() {

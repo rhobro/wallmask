@@ -3,11 +3,11 @@ package main
 import (
 	"bytes"
 	"crypto/tls"
+	"github.com/rhobro/wallmask/pkg/proxy"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"time"
-	"wallmask/pkg/proxy"
 )
 
 func main() {

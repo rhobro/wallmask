@@ -2,12 +2,12 @@ package main
 
 import (
 	"bufio"
-	"github.com/Bytesimal/goutils/pkg/fileio"
+	"github.com/rhobro/goutils/pkg/fileio"
+	"github.com/rhobro/wallmask/internal/idx"
 	"log"
 	"os"
 	"runtime"
 	"strings"
-	"wallmask/internal/idx"
 )
 
 func init() {

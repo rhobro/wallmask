@@ -4,121 +4,31 @@ import (
 	"bytes"
 	"crypto/tls"
 	"fmt"
-	"github.com/Bytesimal/goutils/pkg/httputil"
+	"github.com/rhobro/wallmask/internal/platform/db"
+	"github.com/rhobro/wallmask/pkg/proxy"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"time"
-	"wallmask/internal/platform/db"
-	"wallmask/pkg/proxy"
 )
 
-var idxrs = make(map[string]*idx)
+const sqlUpdate = `
+	UPDATE proxies
+	SET lastTested = $1, working = $2
+	WHERE id = $3;`
+const sqlDetails = `
+	SELECT id
+	FROM proxies
+	WHERE protocol = $1 AND ipv4 = $2 AND port = $3
+	LIMIT 1;`
 
-type idx struct {
-	Period time.Duration
-	run    func()
+// To reduce impact of anomalous proxy test fail
+const nTestRetries = 10
 
-	last    time.Time
-	running bool
-}
+// to control number of test workers started
+const nTestWorkers = 50
 
-// presumes scheduler has set running and last
-func (i *idx) F() {
-	i.run()
-	i.running = false
-}
-
-func Index() {
-	// launch idx scheduler
-	go scheduler()
-	log.Print("{proxy} Initialized")
-}
-
-func scheduler() {
-	// launch db testers
-	go dbTest(true, ASC)
-	go dbTest(false, DESC)
-	for i := 0; i < nTestWorkers; i++ {
-		go testWorker()
-	}
-
-	for {
-		for _, i := range idxrs {
-			if time.Since(i.last) > i.Period && !i.running {
-				i.last = time.Now()
-				i.running = true
-				go i.F()
-			}
-		}
-	}
-}
-
-const (
-	sqlInsert = `
-		INSERT INTO proxies (protocol, ipv4, port, lastTested, working)
-		VALUES ($1, $2, $3, $4, $5);`
-	sqlUpdate = `
-		UPDATE proxies
-		SET lastTested = $1, working = $2
-		WHERE id = $3;`
-	sqlDetails = `
-		SELECT id
-		FROM proxies
-		WHERE protocol = $1 AND ipv4 = $2 AND port = $3
-		LIMIT 1;`
-)
-
-func Add(p *proxy.Proxy) {
-	if p != nil {
-		if httputil.IsValidIPv4(p.IPv4) {
-			d := details(p)
-			if d.ID == -1 {
-				// Add to database if not in already
-				db.Exec(sqlInsert, p.Protocol, p.IPv4, p.Port, d.Last, d.Ok)
-			} else {
-				// Update last tested if already in db
-				db.Exec(sqlUpdate, d.Last, d.Ok, d.ID)
-			}
-		}
-	}
-}
-
-type detail struct {
-	ID   int64
-	Last time.Time
-	Ok   bool
-}
-
-func details(p *proxy.Proxy) *detail {
-	// test
-	last, ok := test(p)
-
-	// check if already exists
-	rs := db.Query(sqlDetails, p.Protocol, p.IPv4, p.Port)
-	defer rs.Close()
-
-	// Get id if present
-	var id int64 = -1
-	if rs.Next() {
-		err := rs.Scan(&id)
-		if err != nil {
-			log.Printf("scan result set of count occurences of %s: %s", p, err)
-		}
-	}
-	return &detail{
-		ID:   id,
-		Last: last,
-		Ok:   ok,
-	}
-}
-
-// To ensure that proxies are not over-tested repeatedly
-const (
-	nTestRetries = 10
-	nTestWorkers = 50
-)
-
+// for deciding if the select statements should order ASC or DESC
 type sqlOrder string
 
 const (
@@ -241,12 +151,13 @@ func testRQ(p *proxy.Proxy) (lastTested time.Time, ok bool) {
 			Transport: &http.Transport{
 				Proxy:           http.ProxyURL(u),
 				TLSClientConfig: &tls.Config{},
+				MaxIdleConns:    1,
 			},
 			Timeout: testTimeout,
 		}
 		defer cli.CloseIdleConnections()
 
-		rsp, err := cli.Get("https://bytesimal.github.io/test")
+		rsp, err := cli.Get("https://rhobro.github.io/test")
 		lastTested = time.Now()
 		if err != nil {
 			return
@@ -314,7 +225,3 @@ func testRQ(p *proxy.Proxy) (lastTested time.Time, ok bool) {
 	}
 	return
 }*/
-
-func proxyErr(src string, err error) {
-	log.Printf("{proxy} {%s} %s", src, err)
-}

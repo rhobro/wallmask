@@ -4,16 +4,16 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/Bytesimal/goutils/pkg/coll"
-	"github.com/Bytesimal/goutils/pkg/fileio"
-	"github.com/Bytesimal/goutils/pkg/httputil"
+	"github.com/rhobro/goutils/pkg/coll"
+	"github.com/rhobro/goutils/pkg/fileio"
+	"github.com/rhobro/goutils/pkg/httputil"
+	"github.com/rhobro/wallmask/pkg/proxy"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
 	"time"
-	"wallmask/pkg/proxy"
 )
 
 func init() {

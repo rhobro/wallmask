@@ -1,11 +1,11 @@
 package proxy
 
 import (
+	"github.com/rhobro/wallmask/internal/platform/db"
 	"log"
 	"net/http"
 	"net/url"
 	"sync"
-	"wallmask/internal/platform/db"
 )
 
 var bufSize = 25

@@ -2,10 +2,9 @@ package db
 
 import (
 	"context"
-	"github.com/Bytesimal/goutils/pkg/coll"
-	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/rhobro/goutils/pkg/coll"
 	"log"
 )
 
@@ -61,7 +60,7 @@ func init() {
 
 // For executing SQL in something like an INSERT or UPDATE statement without returning any rows.
 func Exec(sql string, args ...interface{}) {
-	rs, err := query(sql, args...)
+	rs, err := db.Query(context.Background(), sql, args...)
 	if err != nil {
 		log.Printf("{db} exec query %s: %s", sql, err)
 	}
@@ -77,15 +76,11 @@ func Exec(sql string, args ...interface{}) {
 // QueryResultFormatsByOID may be used as the first args to control exactly how the query is executed. This is rarely
 // needed. See the documentation for those types for details.
 func Query(sql string, args ...interface{}) pgx.Rows {
-	rs, err := query(sql, args...)
+	rs, err := db.Query(context.Background(), sql, args...)
 	if err != nil {
 		log.Printf("{db} query %s: %s", sql, err)
 	}
 	return rs
-}
-
-func query(sql string, args ...interface{}) (pgx.Rows, error) {
-	return db.Query(context.Background(), sql, args...)
 }
 
 // Utility interface for db.QueryFunc
@@ -93,13 +88,13 @@ func query(sql string, args ...interface{}) (pgx.Rows, error) {
 // QueryFunc executes sql with args. For each row returned by the query the values will scanned into the elements of
 // scans and f will be called. If any row fails to scan or f returns an error the query will be aborted and the error
 // will be returned.
-func QueryFunc(sql string, args []interface{}, scans []interface{}, f func(row pgx.QueryFuncRow) error) pgconn.CommandTag {
+/*func QueryFunc(sql string, args []interface{}, scans []interface{}, f func(row pgx.QueryFuncRow) error) pgconn.CommandTag {
 	cmd, err := db.QueryFunc(context.Background(), sql, args, scans, f)
 	if err != nil {
 		log.Printf("{db} query func %s: %s", sql, err)
 	}
 	return cmd
-}
+}*/
 
 // Utility interface for db.QueryRow
 //

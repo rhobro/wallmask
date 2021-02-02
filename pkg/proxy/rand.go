@@ -54,7 +54,7 @@ func initialize() {
 var proxies chan *url.URL
 
 func Rand() func(*http.Request) (*url.URL, error) {
-	return func(r *http.Request) (u *url.URL, err error) {
+	return func(r *http.Request) (*url.URL, error) {
 		initOnce.Do(initialize)
 		return <-proxies, nil
 	}

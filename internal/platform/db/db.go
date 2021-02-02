@@ -4,12 +4,10 @@ import (
 	"context"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/rhobro/goutils/pkg/cfgcat"
 	"github.com/rhobro/goutils/pkg/coll"
 	"log"
 )
-
-// DSN to connect to test CockroachDB
-const url = "postgres://root@localhost:26257/wallmask"
 
 // Concurrency-safe pgxpool.Pool instead of pgx.Conn
 var db *pgxpool.Pool
@@ -26,10 +24,10 @@ var reqTables = map[string]string{
 		);`,
 }
 
-func init() {
+func Connect() {
 	// Connect to db
 	var err error
-	db, err = pgxpool.Connect(context.Background(), url)
+	db, err = pgxpool.Connect(context.Background(), cfgcat.C.GetStringValue("dbURL", "", nil))
 	if err != nil {
 		log.Fatalf("{db} open connection to db: %s\n", err)
 	}
@@ -56,6 +54,8 @@ func init() {
 			Exec(q)
 		}
 	}
+
+	log.Print("{db} connected")
 }
 
 // For executing SQL in something like an INSERT or UPDATE statement without returning any rows.

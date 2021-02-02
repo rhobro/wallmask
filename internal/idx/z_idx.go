@@ -35,7 +35,7 @@ func Index() {
 
 	// launch idx scheduler
 	go scheduler()
-	log.Print("{proxy} Initialized")
+	log.Print("{proxy} initialized")
 }
 
 func scheduler() {

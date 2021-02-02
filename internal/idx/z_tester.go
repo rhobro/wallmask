@@ -12,15 +12,17 @@ import (
 	"time"
 )
 
-const sqlUpdate = `
-	UPDATE proxies
-	SET lastTested = $1, working = $2
-	WHERE id = $3;`
-const sqlDetails = `
-	SELECT id
-	FROM proxies
-	WHERE protocol = $1 AND ipv4 = $2 AND port = $3
-	LIMIT 1;`
+const (
+	sqlUpdate = `
+		UPDATE proxies
+		SET lastTested = $1, working = $2
+		WHERE id = $3;`
+	sqlDetails = `
+		SELECT id
+		FROM proxies
+		WHERE protocol = $1 AND ipv4 = $2 AND port = $3
+		LIMIT 1;`
+)
 
 // To reduce impact of anomalous proxy test fail
 const nTestRetries = 10

@@ -5,9 +5,9 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/rhobro/goutils/pkg/fileio"
 	"github.com/rhobro/goutils/pkg/httputil"
+	"github.com/rhobro/goutils/pkg/services/sentree"
 	"github.com/rhobro/wallmask/pkg/proxy"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -43,17 +43,17 @@ func init() {
 		} else {
 			f, err := ioutil.TempFile(fileio.TmpDir, "coderduck.com_*.html")
 			if err != nil {
-				log.Printf("can't create tmp file: %s", err)
+				sentree.LogCaptureErr(fmt.Errorf("can't create tmp file: %s", err))
 				return
 			}
 			defer f.Close()
 			pgHTML, err := page.Html()
 			if err != nil {
-				log.Printf("can't export doc to HTML str: %s", err)
+				sentree.LogCaptureErr(fmt.Errorf("can't export doc to HTML str: %s", err))
 			}
 			_, err = f.WriteString(pgHTML)
 			if err != nil {
-				log.Printf("can't write html to tmp file: %s", err)
+				sentree.LogCaptureErr(fmt.Errorf("can't write html to tmp file: %s", err))
 			}
 		}
 	}

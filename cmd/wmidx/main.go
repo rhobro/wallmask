@@ -2,9 +2,10 @@ package main
 
 import (
 	"bufio"
-	configcat "github.com/configcat/go-sdk/v7"
-	"github.com/rhobro/goutils/pkg/cfgcat"
+	"github.com/getsentry/sentry-go"
 	"github.com/rhobro/goutils/pkg/fileio"
+	"github.com/rhobro/goutils/pkg/services/cfgcat"
+	"github.com/rhobro/goutils/pkg/services/sentree"
 	"github.com/rhobro/wallmask/internal/idx"
 	"github.com/rhobro/wallmask/internal/platform/consts"
 	"github.com/rhobro/wallmask/internal/platform/db"
@@ -12,17 +13,18 @@ import (
 	"os"
 	"runtime"
 	"strings"
-	"time"
 )
 
 func init() {
 	// tmp files
 	fileio.Init("", "wmidx")
 	// cfgcat
-	cfgcat.InitCustom(configcat.Config{
-		SDKKey:       consts.ConfigCatKey,
-		PollingMode:  configcat.AutoPoll,
-		PollInterval: 1 * time.Second,
+	cfgcat.InitCustom(consts.ConfigCatConf, true)
+	// sentry
+	sentree.Init(sentry.ClientOptions{
+		Dsn:              cfgcat.C.GetStringValue("sentryDSN", "", nil),
+		AttachStacktrace: true,
+		Environment:      "Server",
 	}, true)
 	// db
 	db.Connect()
@@ -41,4 +43,8 @@ func main() {
 			log.Printf("n Goroutines: %d", runtime.NumGoroutine())
 		}
 	}
+
+	// close
+	cfgcat.C.Close()
+	db.Close()
 }

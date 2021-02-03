@@ -1,8 +1,10 @@
 package idx
 
 import (
+	"fmt"
 	"github.com/jackc/pgx/v4"
 	"github.com/rhobro/goutils/pkg/httputil"
+	"github.com/rhobro/goutils/pkg/services/sentree"
 	"github.com/rhobro/wallmask/internal/platform/db"
 	"github.com/rhobro/wallmask/pkg/proxy"
 	"log"
@@ -86,7 +88,7 @@ func details(p *proxy.Proxy) *detail {
 	var id int64 = -1
 	err := rs.Scan(&id)
 	if err != nil && err != pgx.ErrNoRows {
-		log.Printf("scan result set of count occurences of %s: %s", p, err)
+		sentree.LogCaptureErr(fmt.Errorf("scan result set of count occurences of %s: %s", p, err))
 	}
 
 	return &detail{
@@ -97,5 +99,5 @@ func details(p *proxy.Proxy) *detail {
 }
 
 func proxyErr(src string, err error) {
-	log.Printf("{proxy} {%s} %s", src, err)
+	sentree.LogCaptureErr(fmt.Errorf("{proxy} {%s} %s", src, err))
 }

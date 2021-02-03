@@ -1,6 +1,11 @@
 package proxy
 
 import (
+	"fmt"
+	"github.com/getsentry/sentry-go"
+	"github.com/rhobro/goutils/pkg/services/cfgcat"
+	"github.com/rhobro/goutils/pkg/services/sentree"
+	"github.com/rhobro/wallmask/internal/platform/consts"
 	"github.com/rhobro/wallmask/internal/platform/db"
 	"log"
 	"net/http"
@@ -11,6 +16,17 @@ import (
 var bufSize = 25
 
 func Init(bSize int) {
+	// cfgcat
+	cfgcat.InitCustom(consts.ConfigCatConf, false)
+	// sentry
+	sentree.Init(sentry.ClientOptions{
+		Dsn:              cfgcat.C.GetStringValue("sentryDSN", "", nil),
+		AttachStacktrace: true,
+		Environment:      "Client",
+	}, true)
+	// db
+	db.Connect()
+
 	bufSize = bSize
 	initOnce.Do(initialize)
 }
@@ -34,11 +50,13 @@ func initialize() {
 				var p string
 				err := rs.Scan(&p)
 				if err != nil {
-					log.Printf("can't loop through proxy rows: %s", err)
+					sentree.LogCaptureErr(fmt.Errorf("can't loop through proxy table rows: %s", err))
 				}
 				u, err := url.Parse(p)
 				if err == nil {
 					proxies <- u
+				} else {
+					sentree.LogCaptureErr(fmt.Errorf("can't parse url %s: %s", p, err))
 				}
 			}
 		}

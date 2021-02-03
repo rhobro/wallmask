@@ -2,10 +2,12 @@ package db
 
 import (
 	"context"
+	"fmt"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
-	"github.com/rhobro/goutils/pkg/cfgcat"
 	"github.com/rhobro/goutils/pkg/coll"
+	"github.com/rhobro/goutils/pkg/services/cfgcat"
+	"github.com/rhobro/goutils/pkg/services/sentree"
 	"log"
 )
 
@@ -29,7 +31,7 @@ func Connect() {
 	var err error
 	db, err = pgxpool.Connect(context.Background(), cfgcat.C.GetStringValue("dbURL", "", nil))
 	if err != nil {
-		log.Fatalf("{db} open connection to db: %s\n", err)
+		log.Fatal(fmt.Errorf("{db} open connection to db: %s\n", err))
 	}
 
 	// List tables
@@ -42,7 +44,7 @@ func Connect() {
 		var tbl string
 		err := rs.Scan(&tbl)
 		if err != nil {
-			log.Fatalf("scan db table rows: %s", err)
+			sentree.FatalCaptureErr(fmt.Errorf("scan db table rows: %s", err))
 		}
 		tables = append(tables, tbl)
 	}
@@ -58,11 +60,15 @@ func Connect() {
 	log.Print("{db} connected")
 }
 
+func Close() {
+	db.Close()
+}
+
 // For executing SQL in something like an INSERT or UPDATE statement without returning any rows.
 func Exec(sql string, args ...interface{}) {
 	rs, err := db.Query(context.Background(), sql, args...)
 	if err != nil {
-		log.Printf("{db} exec query %s: %s", sql, err)
+		sentree.LogCaptureErr(fmt.Errorf("{db} exec query %s: %s", sql, err))
 	}
 	rs.Close()
 }
@@ -78,7 +84,7 @@ func Exec(sql string, args ...interface{}) {
 func Query(sql string, args ...interface{}) pgx.Rows {
 	rs, err := db.Query(context.Background(), sql, args...)
 	if err != nil {
-		log.Printf("{db} query %s: %s", sql, err)
+		sentree.LogCaptureErr(fmt.Errorf("{db} query %s: %s", sql, err))
 	}
 	return rs
 }
@@ -91,7 +97,7 @@ func Query(sql string, args ...interface{}) pgx.Rows {
 /*func QueryFunc(sql string, args []interface{}, scans []interface{}, f func(row pgx.QueryFuncRow) error) pgconn.CommandTag {
 	cmd, err := db.QueryFunc(context.Background(), sql, args, scans, f)
 	if err != nil {
-		log.Printf("{db} query func %s: %s", sql, err)
+		sentree.LogCaptureErr(fmt.Errorf("{db} query func %s: %s", sql, err))
 	}
 	return cmd
 }*/

@@ -2,7 +2,7 @@ package proxy
 
 import (
 	"fmt"
-	"log"
+	"github.com/rhobro/goutils/pkg/services/sentree"
 	"net/url"
 	"strconv"
 	"strings"
@@ -39,7 +39,7 @@ func New(raw string) (p *Proxy) {
 		if len(spl) == 2 {
 			port, err := strconv.Atoi(spl[1])
 			if err != nil {
-				log.Printf("invalid proxy raw string %s: %s", raw, err)
+				sentree.LogCaptureErr(fmt.Errorf("invalid proxy raw string %s: %s", raw, err))
 				return
 			}
 

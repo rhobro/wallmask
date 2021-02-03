@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"crypto/tls"
 	"fmt"
+	"github.com/rhobro/goutils/pkg/services/sentree"
 	"github.com/rhobro/wallmask/internal/platform/db"
 	"github.com/rhobro/wallmask/pkg/proxy"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"time"
 )
@@ -23,9 +23,6 @@ const (
 		WHERE protocol = $1 AND ipv4 = $2 AND port = $3
 		LIMIT 1;`
 )
-
-// To reduce impact of anomalous proxy test fail
-const nTestRetries = 10
 
 // to control number of test workers started
 const nTestWorkers = 50
@@ -61,7 +58,7 @@ func dbTest(working bool, order sqlOrder) {
 			var id int64
 			err := rs.Scan(&id, &p.Protocol, &p.IPv4, &p.Port)
 			if err != nil {
-				log.Printf("querying proxies for update test: %s", err)
+				sentree.LogCaptureErr(fmt.Errorf("querying proxies for update test: %s", err))
 				continue
 			}
 
@@ -75,6 +72,10 @@ func dbTest(working bool, order sqlOrder) {
 	}
 }
 
+// To reduce impact of anomalous proxy test fail
+const nTestRetries = 5
+const retryInterval = 1 * time.Second
+
 func testWorker() {
 	for ti := range testPipe {
 		// test with optional retries
@@ -85,6 +86,7 @@ func testWorker() {
 			if ok {
 				break
 			}
+			time.Sleep(retryInterval)
 		}
 
 		if ok || ti.Working {
@@ -173,7 +175,7 @@ func testRQ(p *proxy.Proxy) (lastTested time.Time, ok bool) {
 		ok = bytes.Contains(bd, []byte("TEST PAGE"))
 
 	} else {
-		log.Printf("{proxy} can't parse url of proxy %s: %s", p.String(), err)
+		sentree.LogCaptureErr(fmt.Errorf("{proxy} can't parse url of proxy %s: %s", p.String(), err))
 	}
 	return
 }
@@ -198,7 +200,7 @@ func testRQ(p *proxy.Proxy) (lastTested time.Time, ok bool) {
 		defer rsp.Body.Close()
 		page, err := goquery.NewDocumentFromReader(rsp.Body)
 		if err != nil {
-			log.Printf("can't test parse html: %s", err)
+			sentree.LogCaptureErr(fmt.Errorf("can't test parse html: %s", err))
 			return
 		}
 
@@ -215,7 +217,7 @@ func testRQ(p *proxy.Proxy) (lastTested time.Time, ok bool) {
 			rawBool := sl.Find("td > span").Text()
 			testResult, err := strconv.ParseBool(rawBool)
 			if err != nil {
-				log.Printf("can't parse bool %s: %s", rawBool, err)
+				sentree.LogCaptureErr(fmt.Errorf("can't parse bool %s: %s", rawBool, err))
 			}
 			positive = positive && testResult
 		})
@@ -223,7 +225,7 @@ func testRQ(p *proxy.Proxy) (lastTested time.Time, ok bool) {
 		ok = visibleIP != pubIP // && !positive TODO to only allow anonymous proxiesz
 
 	} else {
-		log.Printf("{proxy} can't parse url of proxy %s: %s", p.String(), err)
+		sentree.LogCaptureErr(fmt.Errorf("{proxy} can't parse url of proxy %s: %s", p.String(), err))
 	}
 	return
 }*/

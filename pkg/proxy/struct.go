@@ -1,9 +1,8 @@
 package proxy
 
 import (
+	"errors"
 	"fmt"
-	"github.com/rhobro/goutils/pkg/services/sentree"
-	"log"
 	"net/url"
 	"strconv"
 	"strings"
@@ -32,7 +31,7 @@ func (p *Proxy) URL() (*url.URL, error) {
 }
 
 // Parse addresses in format ip:port
-func New(raw string) (p *Proxy) {
+func New(raw string) (p *Proxy, err error) {
 	// Check if ip is valid and has port
 	if strings.Count(raw, ".") == 3 && strings.Count(raw, ":") == 1 {
 		spl := strings.Split(strings.TrimSpace(raw), ":")
@@ -40,9 +39,7 @@ func New(raw string) (p *Proxy) {
 		if len(spl) == 2 {
 			port, err := strconv.Atoi(spl[1])
 			if err != nil {
-				sentree.C.CaptureException(err, nil, nil)
-				log.Printf("invalid proxy raw string %s: %s", raw, err)
-				return
+				return nil, err
 			}
 
 			if spl[0] != "" && port != 0 {
@@ -50,8 +47,14 @@ func New(raw string) (p *Proxy) {
 					IPv4: spl[0],
 					Port: uint16(port),
 				}
+			} else {
+				return nil, errors.New("does not have a valid IP or port is 0")
 			}
+		} else {
+
 		}
+	} else {
+		err = errors.New("doesn't contain correct format of perids and semicolons")
 	}
 
 	return

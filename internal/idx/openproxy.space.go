@@ -3,7 +3,6 @@ package idx
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"github.com/rhobro/goutils/pkg/coll"
 	"github.com/rhobro/goutils/pkg/fileio"
 	"github.com/rhobro/goutils/pkg/httputil"
@@ -58,12 +57,12 @@ func init() {
 			rq.Header.Set("User-Agent", httputil.RandUA())
 			rsp, err := httputil.RQUntil(http.DefaultClient, rq)
 			if err != nil {
-				proxyErr(src, fmt.Errorf("rq for lists: %s", err))
+				proxyErr(src, err)
 				continue
 			}
 			bd, err := ioutil.ReadAll(rsp.Body)
 			if err != nil {
-				proxyErr(src, fmt.Errorf("reading rq body for lists: %s", err))
+				proxyErr(src, err)
 				continue
 			}
 			rsp.Body.Close()
@@ -76,14 +75,14 @@ func init() {
 				f, fErr := ioutil.TempFile(fileio.TmpDir, "openproxy.space_json_*.json")
 
 				if fErr != nil {
-					proxyErr(src, fmt.Errorf("creating temp file at %s: %s\n", fileio.TmpDir, err))
+					proxyErr(src, err)
 				} else {
 					_, cErr := io.Copy(f, bytes.NewReader(bd))
 
 					if cErr != nil {
-						proxyErr(src, fmt.Errorf("copying json into tmpfile at %s: %s\n", f.Name(), cErr))
+						proxyErr(src, cErr)
 					} else {
-						proxyErr(src, fmt.Errorf("unmarshaling proxy lists, json at %s: %s", f.Name(), err))
+						proxyErr(src, err)
 					}
 					f.Close()
 				}
@@ -120,12 +119,12 @@ func init() {
 					rq.Header.Set("User-Agent", httputil.RandUA())
 					rsp, err := httputil.RQUntil(http.DefaultClient, rq)
 					if err != nil {
-						proxyErr(src, fmt.Errorf("rq proxies in list %s: %s", l.Code, err))
+						proxyErr(src, err)
 						continue
 					}
 					bd, err := ioutil.ReadAll(rsp.Body)
 					if err != nil {
-						proxyErr(src, fmt.Errorf("reading proxies in list: %s", err))
+						proxyErr(src, err)
 						continue
 					}
 
@@ -134,15 +133,17 @@ func init() {
 						var cList countryList
 						err := json.Unmarshal(bd, &cList)
 						if err != nil {
-							proxyErr(src, fmt.Errorf("unmarshaling with countries list: %s", err))
+							proxyErr(src, err)
 						}
 
 						// add
 						for _, country := range cList.Countries {
 							for _, raw := range country.Proxies {
 								p := proxy.New(raw)
-								p.Protocol = sch
-								Add(p)
+								if p != nil {
+									p.Protocol = sch
+									Add(p)
+								}
 							}
 						}
 
@@ -150,14 +151,16 @@ func init() {
 						var list longList
 						err := json.Unmarshal(bd, &list)
 						if err != nil {
-							proxyErr(src, fmt.Errorf("unmarshaling without countries list: %s", err))
+							proxyErr(src, err)
 						}
 
 						// add
 						for _, raw := range list.Proxies {
 							p := proxy.New(raw)
-							p.Protocol = sch
-							Add(p)
+							if p != nil {
+								p.Protocol = sch
+								Add(p)
+							}
 						}
 					}
 				}

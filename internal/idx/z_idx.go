@@ -43,7 +43,8 @@ const sqlInsert = `
 	INSERT INTO proxies (protocol, ipv4, port, lastTested, working)
 	VALUES ($1, $2, $3, $4, $5);`
 
-func Add(p *proxy.Proxy) {
+// add func made into a variable for testing purposes
+var Add = func(p *proxy.Proxy) {
 	if p != nil {
 		if httputil.IsValidIPv4(p.IPv4) {
 			d := details(p)
@@ -75,9 +76,8 @@ func details(p *proxy.Proxy) *detail {
 	var id int64 = -1
 	err := rs.Scan(&id)
 	if err != nil && err != pgx.ErrNoRows {
-		err := fmt.Errorf("scan result set of count occurences of %s: %s", p, err)
 		sentree.C.CaptureException(err, nil, nil)
-		log.Print(err)
+		log.Print(fmt.Errorf("scan result set of count occurences of %s: %s", p, err))
 	}
 
 	return &detail{
@@ -87,7 +87,7 @@ func details(p *proxy.Proxy) *detail {
 	}
 }
 
-func proxyErr(src string, err error) {
+var proxyErr = func(src string, err error) {
 	sentree.C.CaptureException(err, nil, nil)
 	log.Printf("{proxy} {%s} %s", src, err)
 }

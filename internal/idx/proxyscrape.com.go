@@ -2,7 +2,6 @@ package idx
 
 import (
 	"bufio"
-	"fmt"
 	"github.com/rhobro/goutils/pkg/httputil"
 	"github.com/rhobro/wallmask/pkg/proxy"
 	"io"
@@ -22,7 +21,7 @@ func init() {
 		rq.Header.Set("User-Agent", httputil.RandUA())
 		rsp, err := httputil.RQUntil(http.DefaultClient, rq)
 		if err != nil {
-			proxyErr(src, fmt.Errorf("rq proxy list: %s", err))
+			proxyErr(src, err)
 			return
 		}
 		rd := bufio.NewReader(rsp.Body)
@@ -32,7 +31,7 @@ func init() {
 			// Check for EOF or error
 			if err != nil {
 				if err != io.EOF {
-					proxyErr(src, fmt.Errorf("reading list: %s", err))
+					proxyErr(src, err)
 				}
 				break
 			}
@@ -40,8 +39,10 @@ func init() {
 
 			// add after parsing string
 			p := proxy.New(line)
-			p.Protocol = sch
-			Add(p)
+			if p != nil {
+				p.Protocol = sch
+				Add(p)
+			}
 		}
 		rsp.Body.Close()
 	}

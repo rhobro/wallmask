@@ -1,7 +1,6 @@
 package idx
 
 import (
-	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/rhobro/goutils/pkg/httputil"
 	"github.com/rhobro/wallmask/pkg/proxy"
@@ -24,13 +23,13 @@ func init() {
 		rq.Header.Set("User-Agent", httputil.RandUA())
 		rsp, err := httputil.RQUntil(http.DefaultClient, rq)
 		if err != nil {
-			proxyErr(src, fmt.Errorf("rq for list page: %s", err))
+			proxyErr(src, err)
 			return
 		}
 		defer rsp.Body.Close()
 		page, err := goquery.NewDocumentFromReader(rsp.Body)
 		if err != nil {
-			proxyErr(src, fmt.Errorf("parse page with goquery: %s", err))
+			proxyErr(src, err)
 			return
 		}
 

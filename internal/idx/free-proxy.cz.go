@@ -4,7 +4,6 @@ package idx
 
 import (
 	"encoding/base64"
-	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/rhobro/goutils/pkg/httputil"
 	"net/http"
@@ -28,12 +27,12 @@ func init() {
 			rq.Header.Set("User-Agent", httputil.RandUA())
 			rsp, err := httputil.RQUntil(http.DefaultClient, rq)
 			if err != nil {
-				proxyErr(src, fmt.Errorf("rq for list page: %s", err))
+				proxyErr(src, err)
 				continue
 			}
 			page, err := goquery.NewDocumentFromReader(rsp.Body)
 			if err != nil {
-				proxyErr(src, fmt.Errorf("parse page HTML: %s", err))
+				proxyErr(src, err)
 				continue
 			}
 			rsp.Body.Close()
@@ -43,13 +42,13 @@ func init() {
 					raw = raw[1 : len(raw)-1]
 					ipBytes, err := base64.StdEncoding.DecodeString(raw)
 					if err != nil {
-						proxyErr(src, fmt.Errorf("base64 decode: %s", err))
+						proxyErr(src, err)
 						return
 					}
 
 					port, err := strconv.Atoi(sl.Find("td > span").Get(0).FirstChild.Data)
 					if err != nil {
-						proxyErr(src, fmt.Errorf("port str -> int: %s", err))
+						proxyErr(src, err)
 						return
 					}
 

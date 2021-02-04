@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/tls"
 	"fmt"
+	"github.com/jackc/pgx/v4"
 	"github.com/rhobro/goutils/pkg/services/sentree"
 	"github.com/rhobro/wallmask/internal/platform/db"
 	"github.com/rhobro/wallmask/pkg/proxy"
@@ -25,7 +26,7 @@ const (
 )
 
 // to control number of test workers started
-const nTestWorkers = 50
+const nTestWorkers = 100
 
 // for deciding if the select statements should order ASC or DESC
 type sqlOrder string
@@ -43,14 +44,24 @@ type testInst struct {
 
 var testPipe = make(chan *testInst, nTestWorkers)
 
-func dbTest(working bool, order sqlOrder) {
+func dbTest(working bool, order sqlOrder, limit int) {
 	for {
 		// test Proxies
-		rs := db.Query(fmt.Sprintf(`
+		var rs pgx.Rows
+		if limit == -1 {
+			rs = db.Query(fmt.Sprintf(`
 				SELECT id, protocol, ipv4, port
 				FROM proxies
 				WHERE working = $1
 				ORDER BY lastTested %s;`, order), working)
+		} else {
+			rs = db.Query(fmt.Sprintf(`
+				SELECT id, protocol, ipv4, port
+				FROM proxies
+				WHERE working = $1
+				ORDER BY lastTested %s
+				LIMIT %d;`, order, limit), working)
+		}
 
 		// get proxy and test
 		for rs.Next() {

@@ -2,6 +2,7 @@ package proxy
 
 import (
 	"fmt"
+	configcat "github.com/configcat/go-sdk/v7"
 	"github.com/getsentry/sentry-go"
 	"github.com/rhobro/goutils/pkg/services/cfgcat"
 	"github.com/rhobro/goutils/pkg/services/sentree"
@@ -17,12 +18,20 @@ var bufSize = 25
 
 func Init(bSize int) {
 	// cfgcat
-	cfgcat.InitCustom(consts.ConfigCatConf, false)
+	cfgcat.InitCustom(configcat.Config{
+		SDKKey: consts.ConfigCatKey,
+		Transport: &http.Transport{
+			MaxIdleConns: 1,
+		},
+	}, false)
 	// sentry
 	sentree.Init(sentry.ClientOptions{
 		Dsn:              cfgcat.C.GetStringValue("sentryDSN", "", nil),
 		AttachStacktrace: true,
-		Environment:      "Client",
+		Environment:      "client",
+		HTTPTransport: &http.Transport{
+			MaxIdleConns: 1,
+		},
 	}, true)
 	// db
 	db.Connect()

@@ -7,7 +7,6 @@ import (
 	"github.com/rhobro/goutils/pkg/services/sentree"
 	"github.com/rhobro/wallmask/internal/platform/db"
 	"github.com/rhobro/wallmask/pkg/proxy"
-	"log"
 	"time"
 )
 
@@ -25,19 +24,6 @@ type idx struct {
 func (i *idx) F() {
 	i.run()
 	i.running = false
-}
-
-func Index() {
-	// launch db testers
-	go dbTest(true, ASC)
-	go dbTest(false, DESC)
-	for i := 0; i < nTestWorkers; i++ {
-		go testWorker()
-	}
-
-	// launch idx scheduler
-	go scheduler()
-	log.Print("{proxy} initialized")
 }
 
 func scheduler() {

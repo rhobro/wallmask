@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/tls"
 	"fmt"
+	configcat "github.com/configcat/go-sdk/v7"
 	"github.com/getsentry/sentry-go"
 	"github.com/rhobro/goutils/pkg/httputil"
 	"github.com/rhobro/goutils/pkg/services/cfgcat"
@@ -18,12 +19,17 @@ import (
 
 func init() {
 	// cfgcat
-	cfgcat.InitCustom(consts.ConfigCatConf, true)
+	cfgcat.InitCustom(configcat.Config{
+		SDKKey: consts.ConfigCatKey,
+		Transport: &http.Transport{
+			MaxIdleConns: 1,
+		},
+	}, true)
 	// sentry
 	sentree.Init(sentry.ClientOptions{
 		Dsn:              cfgcat.C.GetStringValue("sentryDSN", "", nil),
 		AttachStacktrace: true,
-		Environment:      "Client Tester",
+		Environment:      "client tester",
 	}, true)
 	proxy.Init(25)
 }

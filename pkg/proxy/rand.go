@@ -1,7 +1,6 @@
 package proxy
 
 import (
-	"fmt"
 	configcat "github.com/configcat/go-sdk/v7"
 	"github.com/getsentry/sentry-go"
 	"github.com/rhobro/goutils/pkg/services/cfgcat"
@@ -59,13 +58,15 @@ func initialize() {
 				var p string
 				err := rs.Scan(&p)
 				if err != nil {
-					sentree.LogCaptureErr(fmt.Errorf("can't loop through proxy table rows: %s", err))
+					sentree.C.CaptureException(err, nil, nil)
+					log.Printf("can't loop through proxy table rows: %s", err)
 				}
 				u, err := url.Parse(p)
 				if err == nil {
 					proxies <- u
 				} else {
-					sentree.LogCaptureErr(fmt.Errorf("can't parse url %s: %s", p, err))
+					sentree.C.CaptureException(err, nil, nil)
+					log.Printf("can't parse url %s: %s", p, err)
 				}
 			}
 		}

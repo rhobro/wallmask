@@ -9,6 +9,7 @@ import (
 	"github.com/rhobro/wallmask/internal/platform/db"
 	"github.com/rhobro/wallmask/pkg/proxy"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"time"
 )
@@ -69,7 +70,8 @@ func dbTest(working bool, order sqlOrder, limit int) {
 			var id int64
 			err := rs.Scan(&id, &p.Protocol, &p.IPv4, &p.Port)
 			if err != nil {
-				sentree.LogCaptureErr(fmt.Errorf("querying proxies for update test: %s", err))
+				sentree.C.CaptureException(err, nil, nil)
+				log.Printf("querying proxies for update test: %s", err)
 				continue
 			}
 
@@ -186,7 +188,8 @@ func testRQ(p *proxy.Proxy) (lastTested time.Time, ok bool) {
 		ok = bytes.Contains(bd, []byte("TEST PAGE"))
 
 	} else {
-		sentree.LogCaptureErr(fmt.Errorf("{proxy} can't parse url of proxy %s: %s", p.String(), err))
+		sentree.C.CaptureException(err, nil, nil)
+		log.Printf("{proxy} can't parse url of proxy %s: %s", p.String(), err)
 	}
 	return
 }
@@ -211,7 +214,8 @@ func testRQ(p *proxy.Proxy) (lastTested time.Time, ok bool) {
 		defer rsp.Body.Close()
 		page, err := goquery.NewDocumentFromReader(rsp.Body)
 		if err != nil {
-			sentree.LogCaptureErr(fmt.Errorf("can't test parse html: %s", err))
+			sentree.C.CaptureException(err, nil, nil)
+			log.Printf("can't test parse html: %s", err)
 			return
 		}
 
@@ -228,7 +232,8 @@ func testRQ(p *proxy.Proxy) (lastTested time.Time, ok bool) {
 			rawBool := sl.Find("td > span").Text()
 			testResult, err := strconv.ParseBool(rawBool)
 			if err != nil {
-				sentree.LogCaptureErr(fmt.Errorf("can't parse bool %s: %s", rawBool, err))
+				sentree.C.CaptureException(err, nil, nil)
+				log.Printf("can't parse bool %s: %s", rawBool, err)
 			}
 			positive = positive && testResult
 		})
@@ -236,7 +241,8 @@ func testRQ(p *proxy.Proxy) (lastTested time.Time, ok bool) {
 		ok = visibleIP != pubIP // && !positive TODO to only allow anonymous proxiesz
 
 	} else {
-		sentree.LogCaptureErr(fmt.Errorf("{proxy} can't parse url of proxy %s: %s", p.String(), err))
+		sentree.C.CaptureException(err, nil, nil)
+		log.Printf("{proxy} can't parse url of proxy %s: %s", p.String(), err)
 	}
 	return
 }*/

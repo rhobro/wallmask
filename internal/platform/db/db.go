@@ -68,7 +68,8 @@ func Close() {
 func Exec(sql string, args ...interface{}) {
 	rs, err := db.Query(context.Background(), sql, args...)
 	if err != nil {
-		sentree.LogCaptureErr(fmt.Errorf("{db} exec query %s: %s", sql, err))
+		sentree.C.CaptureException(err, nil, nil)
+		log.Printf("{db} exec query %s: %s", sql, err)
 	}
 	rs.Close()
 }
@@ -84,7 +85,8 @@ func Exec(sql string, args ...interface{}) {
 func Query(sql string, args ...interface{}) pgx.Rows {
 	rs, err := db.Query(context.Background(), sql, args...)
 	if err != nil {
-		sentree.LogCaptureErr(fmt.Errorf("{db} query %s: %s", sql, err))
+		sentree.C.CaptureException(err, nil, nil)
+		log.Printf("{db} query %s: %s", sql, err)
 	}
 	return rs
 }
@@ -97,7 +99,8 @@ func Query(sql string, args ...interface{}) pgx.Rows {
 /*func QueryFunc(sql string, args []interface{}, scans []interface{}, f func(row pgx.QueryFuncRow) error) pgconn.CommandTag {
 	cmd, err := db.QueryFunc(context.Background(), sql, args, scans, f)
 	if err != nil {
-		sentree.LogCaptureErr(fmt.Errorf("{db} query func %s: %s", sql, err))
+		sentree.C.CaptureException(err, nil, nil)
+		log.Printf("{db} query func %s: %s", sql, err)
 	}
 	return cmd
 }*/

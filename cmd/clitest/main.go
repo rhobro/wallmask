@@ -3,10 +3,8 @@ package main
 import (
 	"bytes"
 	"crypto/tls"
-	"fmt"
 	configcat "github.com/configcat/go-sdk/v7"
 	"github.com/getsentry/sentry-go"
-	"github.com/rhobro/goutils/pkg/httputil"
 	"github.com/rhobro/goutils/pkg/services/cfgcat"
 	"github.com/rhobro/goutils/pkg/services/sentree"
 	"github.com/rhobro/wallmask/internal/platform/consts"
@@ -29,7 +27,7 @@ func init() {
 	sentree.Init(sentry.ClientOptions{
 		Dsn:              cfgcat.C.GetStringValue("sentryDSN", "", nil),
 		AttachStacktrace: true,
-		Environment:      "client tester",
+		Environment:      "clitester",
 	}, true)
 	proxy.Init(25)
 }
@@ -46,15 +44,18 @@ func main() {
 		}
 
 		s := time.Now()
-		rsp, err := httputil.RQUntilCustom(http.DefaultClient, rq, -1)
+		//rsp, err := httputil.RQUntilCustom(http.DefaultClient, rq, -1)
+		rsp, err := http.DefaultClient.Do(rq)
 		e := time.Now()
 		if err != nil {
-			sentree.LogCaptureErr(fmt.Errorf("requesting page: %s", err))
+			sentree.C.CaptureException(err, nil, nil)
+			log.Printf("requesting page: %s", err)
 			continue
 		}
 		bd, err := ioutil.ReadAll(rsp.Body)
 		if err != nil {
-			sentree.LogCaptureErr(fmt.Errorf("reading page bytes: %s", err))
+			sentree.C.CaptureException(err, nil, nil)
+			log.Printf("reading page bytes: %s", err)
 			continue
 		}
 		log.Printf("Succeeded: %t | Time: %s", bytes.Contains(bd, []byte("TEST PAGE")), e.Sub(s))

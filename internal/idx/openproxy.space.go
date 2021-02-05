@@ -109,10 +109,8 @@ func init() {
 					// update planners
 					if l.Date > latest {
 						latest = l.Date
-					} else {
-						if firstIdxd {
-							return
-						}
+					} else if firstIdxd {
+						return
 					}
 
 					rq, _ := http.NewRequest("GET", listBase+l.Code, nil)

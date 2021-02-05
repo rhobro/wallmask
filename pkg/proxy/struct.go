@@ -50,8 +50,6 @@ func New(raw string) (p *Proxy, err error) {
 			} else {
 				return nil, errors.New("does not have a valid IP or port is 0")
 			}
-		} else {
-
 		}
 	} else {
 		err = errors.New("doesn't contain correct format of perids and semicolons")

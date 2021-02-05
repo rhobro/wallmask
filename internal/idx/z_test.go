@@ -10,7 +10,6 @@ func TestIndexers(t *testing.T) {
 	// proxy list
 	var pMu sync.Mutex
 	proxies := make(map[string]*proxy.Proxy)
-	defer t.Logf("n Proxies: %d", len(proxies))
 	// subtest test dir
 	var sMu sync.RWMutex
 	subtests := make(map[string]*testing.T)

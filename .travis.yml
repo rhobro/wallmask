@@ -13,4 +13,4 @@ install:
   - docker-compose up -d
 
 script:
-  -
+  - go test ./...

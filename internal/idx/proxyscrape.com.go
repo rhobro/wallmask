@@ -38,9 +38,8 @@ func init() {
 			line = strings.TrimSpace(line)
 
 			// add after parsing string
-			p := proxy.New(line)
-			if p != nil {
-				p.Protocol = sch
+			p, err := proxy.New(line)
+			if err == nil {
 				Add(p)
 			}
 		}

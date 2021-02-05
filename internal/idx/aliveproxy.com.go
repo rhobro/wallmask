@@ -42,8 +42,8 @@ func init() {
 			proxyType := strings.ToLower(sl.Find("td").Get(2).FirstChild.Data)
 			if strings.Contains(proxyType, "high") {
 				raw := strings.TrimSpace(sl.Find("td").Get(0).FirstChild.Data)
-				p := proxy.New(raw)
-				if p != nil {
+				p, err := proxy.New(raw)
+				if err == nil {
 					p.Protocol = sch
 					Add(p)
 				}

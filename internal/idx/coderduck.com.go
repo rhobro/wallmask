@@ -38,7 +38,10 @@ func init() {
 		if sl.Length() > 0 {
 			raw := strings.TrimSpace(sl.Get(0).FirstChild.Data)
 			for _, line := range strings.Split(raw, "\n") {
-				Add(proxy.New(line))
+				p, err := proxy.New(line)
+				if err == nil {
+					Add(p)
+				}
 			}
 		} else {
 			f, err := ioutil.TempFile(fileio.TmpDir, "coderduck.com_*.html")

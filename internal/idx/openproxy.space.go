@@ -139,9 +139,8 @@ func init() {
 						// add
 						for _, country := range cList.Countries {
 							for _, raw := range country.Proxies {
-								p := proxy.New(raw)
-								if p != nil {
-									p.Protocol = sch
+								p, err := proxy.New(raw)
+								if err == nil {
 									Add(p)
 								}
 							}
@@ -156,9 +155,8 @@ func init() {
 
 						// add
 						for _, raw := range list.Proxies {
-							p := proxy.New(raw)
-							if p != nil {
-								p.Protocol = sch
+							p, err := proxy.New(raw)
+							if err == nil {
 								Add(p)
 							}
 						}

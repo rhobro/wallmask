@@ -59,9 +59,8 @@ func recursiveExtract(proto proxy.Protocol, n *html.Node) {
 			d = d[:hashI]
 		}
 
-		p := proxy.New(d)
-		if p != nil {
-			p.Protocol = proto
+		p, err := proxy.New(d)
+		if err == nil {
 			Add(p)
 		}
 	}

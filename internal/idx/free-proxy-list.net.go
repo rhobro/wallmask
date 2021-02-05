@@ -31,9 +31,8 @@ func init() {
 
 		rawList := strings.Split(page.Find("div.modal-body > textarea").Get(0).FirstChild.Data, "\n\n")[1]
 		for _, line := range strings.Split(strings.TrimSpace(rawList), "\n") {
-			p := proxy.New(line)
-			if p != nil {
-				p.Protocol = proxy.HTTP
+			p, err := proxy.New(line)
+			if err == nil {
 				Add(p)
 			}
 		}

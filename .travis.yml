@@ -1,6 +1,5 @@
 language: go
 go:
-  - 1.12.x
   - 1.13.x
   - 1.14.x
   - 1.15.x
@@ -9,8 +8,8 @@ go:
 
 install:
   - go get -u ./cmd/wmidx
-  - go build -o bin/wmidx ./cmd/wmidx
   - docker-compose up -d
 
 script:
-  - go test ./...
+  - go build -o bin/wmidx ./cmd/wmidx # test for error-free build
+  - go test ./... # unit tests

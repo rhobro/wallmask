@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"crypto/tls"
 	configcat "github.com/configcat/go-sdk/v7"
 	"github.com/getsentry/sentry-go"
 	"github.com/rhobro/goutils/pkg/services/cfgcat"
@@ -38,8 +37,7 @@ func main() {
 	for {
 		http.DefaultClient = &http.Client{
 			Transport: &http.Transport{
-				Proxy:           proxy.Rand(),
-				TLSClientConfig: &tls.Config{},
+				Proxy: proxy.Rand(),
 			},
 		}
 

@@ -7,9 +7,13 @@ go:
   - master
 
 install:
-  - go get -u ./cmd/wmidx
-  - docker-compose up -d
+  - go get -t -u -v ./cmd/wmidx
 
 script:
+  - go test -race -coverprofile=coverage.txt -covermode=atomic
+  - docker-compose up -d # test docker compose config
   - go build -o bin/wmidx ./cmd/wmidx # test for error-free build
-  - go test ./... # unit tests
+  - go test -race -coverprofile=coverage.txt -covermode=atomic ./... # unit tests
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash) # upload coverage to CodeCov.io

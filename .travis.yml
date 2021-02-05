@@ -1,16 +1,7 @@
 language: go
 go:
-  - 1.13.x
-  - 1.14.x
-  - 1.15.x
   - 1.x
   - master
-arch:
-  - amd64
-#  - arm64
-#  - arm64-graviton2
-#  - ppc64le
-#  - s390x
 
 install:
   # get dependencies
@@ -21,7 +12,6 @@ install:
 
 script:
   - docker-compose up -d # test docker compose config
-  - go build -o bin/wmidx ./cmd/wmidx # test for error-free build
   - go test -v -coverprofile=coverage.txt -covermode=atomic ./... # unit tests for codecov TODO test for race
 
 after_success:

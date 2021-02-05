@@ -5,14 +5,28 @@ go:
   - 1.15.x
   - 1.x
   - master
+arch:
+  - amd64
+#  - arm64
+#  - arm64-graviton2
+#  - ppc64le
+#  - s390x
 
 install:
+  # get dependencies
   - go get -t -u -v ./cmd/wmidx
+  # go cmd for coveralls
+  - go get golang.org/x/tools/cmd/cover
+  - go get github.com/mattn/goveralls
 
 script:
   - docker-compose up -d # test docker compose config
   - go build -o bin/wmidx ./cmd/wmidx # test for error-free build
-  - go test -coverprofile=coverage.txt -covermode=atomic ./... # unit tests TODO test for race
+  - go test -coverprofile=coverage.txt -covermode=atomic ./... # unit tests for codecov TODO test for race
+  - go test -v -covermode=count -coverprofile=coverage.out ./... # unit tests for coveralls TODO test for race
 
 after_success:
-  - bash <(curl -s https://codecov.io/bash) # upload coverage to CodeCov.io
+  # codecov
+  - bash <(curl -s https://codecov.io/bash)
+  # coveralls
+  - $HOME/gopath/bin/goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $COVERALLS_TOKEN

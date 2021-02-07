@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	configcat "github.com/configcat/go-sdk/v7"
 	"github.com/getsentry/sentry-go"
 	"github.com/rhobro/goutils/pkg/services/cfgcat"
 	"github.com/rhobro/goutils/pkg/services/sentree"
@@ -16,12 +15,7 @@ import (
 
 func init() {
 	// cfgcat
-	cfgcat.InitCustom(configcat.Config{
-		SDKKey: consts.ConfigCatKey,
-		Transport: &http.Transport{
-			MaxIdleConns: 1,
-		},
-	}, true)
+	cfgcat.InitCustom(consts.ConfigCatConfig, true)
 	// sentry
 	sentree.Init(sentry.ClientOptions{
 		Dsn:              cfgcat.C.GetStringValue("sentryDSN", "", nil),

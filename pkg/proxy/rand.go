@@ -1,7 +1,6 @@
 package proxy
 
 import (
-	configcat "github.com/configcat/go-sdk/v7"
 	"github.com/getsentry/sentry-go"
 	"github.com/rhobro/goutils/pkg/services/cfgcat"
 	"github.com/rhobro/goutils/pkg/services/sentree"
@@ -17,12 +16,7 @@ var bufSize = 25
 
 func Init(bSize int) {
 	// cfgcat
-	cfgcat.InitCustom(configcat.Config{
-		SDKKey: consts.ConfigCatKey,
-		Transport: &http.Transport{
-			MaxIdleConns: 1,
-		},
-	}, false)
+	cfgcat.InitCustom(consts.ConfigCatConfig, false)
 	// sentry
 	sentree.Init(sentry.ClientOptions{
 		Dsn:              cfgcat.C.GetStringValue("sentryDSN", "", nil),

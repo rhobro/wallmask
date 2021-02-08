@@ -13,8 +13,17 @@ import (
 )
 
 var bufSize = 25
+var verb bool
+var proxies chan *url.URL
 
-func Init(bSize int) {
+func Rand() func(*http.Request) (*url.URL, error) {
+	return func(r *http.Request) (u *url.URL, _ error) {
+		initOnce.Do(initialize)
+		return <-proxies, nil
+	}
+}
+
+func Init(bSize int, verbose bool) {
 	// cfgcat
 	cfgcat.InitCustom(consts.ConfigCatConfig, false)
 	// sentry
@@ -25,11 +34,12 @@ func Init(bSize int) {
 		HTTPTransport: &http.Transport{
 			MaxIdleConns: 1,
 		},
-	}, true)
+	}, false)
 	// db
-	db.Connect()
+	db.Connect(false)
 
 	bufSize = bSize
+	verb = verbose
 	initOnce.Do(initialize)
 }
 
@@ -56,7 +66,7 @@ func initialize() {
 					log.Printf("can't loop through proxy table rows: %s", err)
 				}
 				u, err := url.Parse(p)
-				if err == nil {
+				if err == nil && u != nil {
 					proxies <- u
 				} else {
 					sentree.C.CaptureException(err, nil, nil)
@@ -70,14 +80,7 @@ func initialize() {
 	for len(proxies) == 0 {
 		continue
 	}
-	log.Print("{wallmask} connected")
-}
-
-var proxies chan *url.URL
-
-func Rand() func(*http.Request) (*url.URL, error) {
-	return func(r *http.Request) (*url.URL, error) {
-		initOnce.Do(initialize)
-		return <-proxies, nil
+	if verb {
+		log.Print("{wallmask} connected")
 	}
 }

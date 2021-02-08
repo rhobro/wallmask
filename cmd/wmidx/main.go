@@ -27,7 +27,7 @@ func init() {
 		Environment:      "server",
 	}, true)
 	// db
-	db.Connect()
+	db.Connect(true)
 }
 
 func main() {

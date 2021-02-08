@@ -1,7 +1,7 @@
 package consts
 
 import (
-	configcat "github.com/configcat/go-sdk/v7"
+	"github.com/configcat/go-sdk/v7"
 	"net/http"
 	"time"
 )

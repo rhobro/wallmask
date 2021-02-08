@@ -2,10 +2,8 @@ package main
 
 import (
 	"bytes"
-	"github.com/getsentry/sentry-go"
-	"github.com/rhobro/goutils/pkg/services/cfgcat"
+	"github.com/rhobro/goutils/pkg/httputil"
 	"github.com/rhobro/goutils/pkg/services/sentree"
-	"github.com/rhobro/wallmask/internal/platform/consts"
 	"github.com/rhobro/wallmask/pkg/proxy"
 	"io/ioutil"
 	"log"
@@ -14,15 +12,7 @@ import (
 )
 
 func init() {
-	// cfgcat
-	cfgcat.InitCustom(consts.ConfigCatConfig, true)
-	// sentry
-	sentree.Init(sentry.ClientOptions{
-		Dsn:              cfgcat.C.GetStringValue("sentryDSN", "", nil),
-		AttachStacktrace: true,
-		Environment:      "clitester",
-	}, true)
-	proxy.Init(25)
+	proxy.Init(25, true)
 }
 
 func main() {
@@ -36,8 +26,7 @@ func main() {
 		}
 
 		s := time.Now()
-		//rsp, err := httputil.RQUntilCustom(http.DefaultClient, rq, -1)
-		rsp, err := http.DefaultClient.Do(rq)
+		rsp, err := httputil.RQUntilCustom(http.DefaultClient, rq, -1)
 		e := time.Now()
 		if err != nil {
 			sentree.C.CaptureException(err, nil, nil)

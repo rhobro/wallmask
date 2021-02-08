@@ -1,7 +1,7 @@
 version: "3"
 services:
   cockroach:
-    image: "cockroachdb/cockroach"
+    image: "cockroachdb/cockroach:latest"
     container_name: "roachmaster"
     command: "start-single-node --insecure"
     ports:

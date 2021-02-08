@@ -26,7 +26,7 @@ var reqTables = map[string]string{
 		);`,
 }
 
-func Connect() {
+func Connect(verbose bool) {
 	// Connect to db
 	var err error
 	db, err = pgxpool.Connect(context.Background(), cfgcat.C.GetStringValue("dbURL", "", nil))
@@ -57,7 +57,9 @@ func Connect() {
 		}
 	}
 
-	log.Print("{db} connected")
+	if verbose {
+		log.Print("{db} connected")
+	}
 }
 
 func Close() {

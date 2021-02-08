@@ -47,10 +47,10 @@ VALUES ('$1', 0, 1609018536968587000, true);
 CREATE TABLE test
 (
     id     SMALLSERIAL PRIMARY KEY,
-    number BIGINT NOT NULL
+    n BIGINT NOT NULL
 );
 DROP TABLE test;
-INSERT INTO test (number)
+INSERT INTO test (n)
 VALUES (123);
 SELECT *
 FROM test;

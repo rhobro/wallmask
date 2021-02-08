@@ -25,7 +25,7 @@ func Rand() func(*http.Request) (*url.URL, error) {
 
 func Init(bSize int, verbose bool) {
 	// cfgcat
-	cfgcat.InitCustom(consts.ConfigCatConfig, false)
+	cfgcat.InitCustom(consts.ConfigCatConfig, verbose)
 	// sentry
 	sentree.Init(sentry.ClientOptions{
 		Dsn:              cfgcat.C.GetStringValue("sentryDSN", "", nil),
@@ -34,9 +34,9 @@ func Init(bSize int, verbose bool) {
 		HTTPTransport: &http.Transport{
 			MaxIdleConns: 1,
 		},
-	}, false)
+	}, verbose)
 	// db
-	db.Connect(false)
+	db.Connect(verbose)
 
 	bufSize = bSize
 	verb = verbose

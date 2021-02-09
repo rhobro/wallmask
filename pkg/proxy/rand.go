@@ -1,6 +1,7 @@
 package proxy
 
 import (
+	"fmt"
 	"github.com/getsentry/sentry-go"
 	"github.com/rhobro/goutils/pkg/services/cfgcat"
 	"github.com/rhobro/goutils/pkg/services/sentree"
@@ -51,11 +52,12 @@ func initialize() {
 	go func() {
 		for {
 			// repeatedly query
-			rs := db.Query(`
+			rs := db.Query(fmt.Sprintf(`
 				SELECT protocol || '://' || ipv4 || ':' || CAST(port AS TEXT) ip
 				FROM proxies
 				WHERE working AND protocol != '' AND ipv4 != ''
-				ORDER BY lastTested DESC;`)
+				ORDER BY lastTested DESC
+				LIMIT %d;`, bufSize))
 
 			// loop through each proxy
 			for rs.Next() {

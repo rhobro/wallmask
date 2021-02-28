@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"github.com/rhobro/goutils/pkg/httputil"
 	"github.com/rhobro/goutils/pkg/services/sentree"
 	"github.com/rhobro/wallmask/pkg/proxy"
 	"io/ioutil"
@@ -26,7 +25,7 @@ func main() {
 		}
 
 		s := time.Now()
-		rsp, err := httputil.RQUntilCustom(http.DefaultClient, rq, -1)
+		rsp, err := http.DefaultClient.Do(rq)
 		e := time.Now()
 		if err != nil {
 			sentree.C.CaptureException(err, nil, nil)

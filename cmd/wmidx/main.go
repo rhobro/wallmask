@@ -26,8 +26,6 @@ func init() {
 		AttachStacktrace: true,
 		Environment:      "server",
 	}, true)
-	// db
-	db.Connect(true)
 }
 
 func main() {

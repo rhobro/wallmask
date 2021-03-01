@@ -17,14 +17,14 @@ const (
 type Protocol string
 
 type Proxy struct {
-	Protocol Protocol
-	IPv4     string
-	Port     uint16
+	Proto Protocol
+	IPv4  string
+	Port  uint16
 }
 
 // fmt.Stringer
 func (p *Proxy) String() string {
-	return fmt.Sprintf("%s://%s:%d", p.Protocol, p.IPv4, p.Port)
+	return fmt.Sprintf("%s://%s:%d", p.Proto, p.IPv4, p.Port)
 }
 
 func (p *Proxy) URL() (*url.URL, error) {

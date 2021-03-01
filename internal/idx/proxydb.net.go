@@ -39,7 +39,7 @@ func init() {
 				if err != nil {
 					return
 				}
-				p.Protocol = proxy.Protocol(strings.ToLower(proto))
+				p.Proto = proxy.Protocol(strings.ToLower(proto))
 				Add(p)
 			}
 		})

@@ -41,9 +41,9 @@ func init() {
 			}
 
 			Add(&proxy.Proxy{
-				Protocol: sch,
-				IPv4:     ip,
-				Port:     uint16(port),
+				Proto: sch,
+				IPv4:  ip,
+				Port:  uint16(port),
 			})
 		})
 	}

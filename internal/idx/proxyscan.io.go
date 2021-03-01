@@ -13,51 +13,59 @@ import (
 
 func init() {
 	src := "proxyscan.io"
-	base := "https://www.proxyscan.io/Home/FilterResult"
+	base := "https://www.proxyscan.io/home/filterresult"
 	v := url.Values{}
-	v.Add("SelectedAnonymity", "Elite")
-	v.Add("sortPing", "false")
-	v.Add("sortTime", "true")
-	v.Add("sortUptime", "false")
+	v.Set("limit", "100")
+	v.Set("SelectedAnonymity", "Elite")
+	v.Set("sortPing", "false")
+	v.Set("sortTime", "true")
+	v.Set("sortUptime", "false")
+	v.Add("selectedType", "HTTP")
+	v.Add("selectedType", "HTTPS")
+	v.Add("selectedType", "SOCKS5")
+	v.Set("page", "0")
 
-	scrape := func(sch proxy.Protocol, v *url.Values) {
+	run := func() {
+		v.Set("_", strconv.FormatInt(time.Now().UnixNano()/1e6, 10))
 		// Request
 		rq, _ := http.NewRequest("POST", base, strings.NewReader(v.Encode()))
 		rq.Header.Set("User-Agent", httputil.RandUA())
 		rsp, err := httputil.RQUntil(http.DefaultClient, rq)
 		if err != nil {
-			proxyErr(src, err)
+			//proxyErr(src, err)
 			return
 		}
 		defer rsp.Body.Close()
 		page, err := goquery.NewDocumentFromReader(rsp.Body)
 		if err != nil {
-			proxyErr(src, err)
+			//proxyErr(src, err)
 			return
 		}
 
 		page.Find("tr").Each(func(i int, sl *goquery.Selection) {
 			ip := sl.Find("th").Get(0).FirstChild.Data
 			port, err := strconv.Atoi(sl.Find("td").Get(0).FirstChild.Data)
+			protos := strings.TrimSpace(sl.Find("td").Get(3).FirstChild.Data)
 			if err != nil {
 				return
 			}
 
-			Add(&proxy.Proxy{
-				Protocol: sch,
-				IPv4:     ip,
-				Port:     uint16(port),
-			})
+			p := &proxy.Proxy{
+				IPv4: ip,
+				Port: uint16(port),
+			}
+			if !strings.Contains(protos, ",") {
+				switch protos {
+				case "HTTP":
+					p.Proto = proxy.HTTP
+				case "HTTPS":
+					p.Proto = proxy.HTTPS
+				case "SOCKS5":
+					p.Proto = proxy.SOCKS5
+				}
+			}
+			Add(p)
 		})
-	}
-
-	run := func() {
-		v.Set("selectedType", "HTTP")
-		scrape(proxy.HTTP, &v)
-		v.Set("selectedType", "HTTPS")
-		scrape(proxy.HTTPS, &v)
-		v.Set("selectedType", "SOCKS5")
-		scrape(proxy.SOCKS5, &v)
 	}
 
 	idxrs[src] = &idx{

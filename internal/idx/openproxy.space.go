@@ -175,6 +175,6 @@ func init() {
 func rawQuery(skip int) string {
 	v := url.Values{}
 	v.Set("skip", strconv.Itoa(skip))
-	v.Set("ts", strconv.FormatInt(time.Now().UnixNano()/1000000, 10))
+	v.Set("ts", strconv.FormatInt(time.Now().UnixNano()/1e6, 10))
 	return v.Encode()
 }

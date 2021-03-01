@@ -44,7 +44,7 @@ func init() {
 				raw := strings.TrimSpace(sl.Find("td").Get(0).FirstChild.Data)
 				p, err := proxy.New(raw)
 				if err == nil {
-					p.Protocol = sch
+					p.Proto = sch
 					Add(p)
 				}
 			}

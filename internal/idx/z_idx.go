@@ -50,7 +50,7 @@ var Add = func(p *proxy.Proxy) {
 			d := details(p)
 			if d.ID == -1 {
 				// Add to database if not in already
-				db.Exec(sqlInsert, p.Protocol, p.IPv4, p.Port, d.Last, d.Ok)
+				db.Exec(sqlInsert, p.Proto, p.IPv4, p.Port, d.Last, d.Ok)
 			} else {
 				// Update last tested if already in db
 				db.Exec(sqlUpdate, d.Last, d.Ok, d.ID)
@@ -70,7 +70,7 @@ func details(p *proxy.Proxy) *detail {
 	last, ok := test(p)
 
 	// check if already exists
-	rs := db.QueryRow(sqlDetails, p.Protocol, p.IPv4, p.Port)
+	rs := db.QueryRow(sqlDetails, p.Proto, p.IPv4, p.Port)
 
 	// Get id if present
 	var id int64 = -1

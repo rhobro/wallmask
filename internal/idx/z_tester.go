@@ -68,7 +68,7 @@ func dbTest(working bool, order sqlOrder, limit int) {
 		for rs.Next() {
 			var p proxy.Proxy
 			var id int64
-			err := rs.Scan(&id, &p.Protocol, &p.IPv4, &p.Port)
+			err := rs.Scan(&id, &p.Proto, &p.IPv4, &p.Port)
 			if err != nil {
 				sentree.C.CaptureException(err, nil, nil)
 				log.Printf("querying proxies for update test: %s", err)
@@ -108,14 +108,14 @@ func testWorker() {
 	}
 }
 
-var protocols = []proxy.Protocol{proxy.HTTP, proxy.SOCKS5}
+var protocols = []proxy.Protocol{proxy.HTTP, proxy.HTTPS, proxy.SOCKS5}
 
 func test(p *proxy.Proxy) (lastTested time.Time, ok bool) {
 	// if no protocol
-	if p.Protocol == "" {
+	if p.Proto == "" {
 		// test each protocol
 		for _, sc := range protocols {
-			p.Protocol = sc
+			p.Proto = sc
 			// test
 			lastTested, ok = testRQ(p)
 			if ok {
@@ -124,7 +124,7 @@ func test(p *proxy.Proxy) (lastTested time.Time, ok bool) {
 		}
 		// nil proto if none - must test later
 		if !ok {
-			p.Protocol = ""
+			p.Proto = ""
 		}
 
 	} else {

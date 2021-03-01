@@ -99,8 +99,10 @@ func init() {
 			// iterate through index
 			for _, l := range lists {
 				var sch proxy.Protocol
-				if coll.ContainsInt(l.Protocols, HTTP) || coll.ContainsInt(l.Protocols, HTTPS) {
+				if coll.ContainsInt(l.Protocols, HTTP) {
 					sch = proxy.HTTP
+				} else if coll.ContainsInt(l.Protocols, HTTPS) {
+					sch = proxy.HTTPS
 				} else if coll.ContainsInt(l.Protocols, SOCKS5) {
 					sch = proxy.SOCKS5
 				}

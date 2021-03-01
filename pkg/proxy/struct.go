@@ -10,6 +10,7 @@ import (
 
 const (
 	HTTP   Protocol = "http"
+	HTTPS  Protocol = "https"
 	SOCKS5 Protocol = "socks5"
 )
 

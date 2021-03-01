@@ -13,6 +13,7 @@ func init() {
 	src := "proxy-list.download"
 	bases := map[proxy.Protocol]string{
 		proxy.HTTP:   "https://www.proxy-list.download/HTTP",
+		proxy.HTTPS:  "https://www.proxy-list.download/HTTPS",
 		proxy.SOCKS5: "https://www.proxy-list.download/SOCKS5",
 	}
 

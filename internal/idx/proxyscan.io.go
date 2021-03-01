@@ -52,9 +52,10 @@ func init() {
 	}
 
 	run := func() {
-		v.Add("selectedType", "HTTP")
-		v.Add("selectedType", "HTTPS")
+		v.Set("selectedType", "HTTP")
 		scrape(proxy.HTTP, &v)
+		v.Set("selectedType", "HTTPS")
+		scrape(proxy.HTTPS, &v)
 		v.Set("selectedType", "SOCKS5")
 		scrape(proxy.SOCKS5, &v)
 	}

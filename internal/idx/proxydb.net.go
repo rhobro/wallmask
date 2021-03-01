@@ -2,6 +2,7 @@ package idx
 
 import (
 	"github.com/PuerkitoBio/goquery"
+	"github.com/rhobro/goutils/pkg/coll"
 	"github.com/rhobro/goutils/pkg/httputil"
 	"github.com/rhobro/wallmask/pkg/proxy"
 	"net/http"
@@ -33,17 +34,12 @@ func init() {
 			ip := sl.Find("td > a").Get(0).FirstChild.Data
 			proto := strings.TrimSpace(sl.Find("td").Get(4).FirstChild.Data)
 
-			if proto == "HTTP" || proto == "HTTPS" || proto == "SOCKS5" {
+			if coll.ContainsStr([]string{"HTTP", "HTTPS", "SOCKS5"}, proto) {
 				p, err := proxy.New(ip)
 				if err != nil {
 					return
 				}
-				switch proto {
-				case "HTTP", "HTTPS":
-					p.Protocol = proxy.HTTP
-				case "SOCKS5":
-					p.Protocol = proxy.SOCKS5
-				}
+				p.Protocol = proxy.Protocol(strings.ToLower(proto))
 				Add(p)
 			}
 		})

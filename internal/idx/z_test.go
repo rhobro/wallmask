@@ -1,12 +1,15 @@
 package idx
 
 import (
+	"github.com/rhobro/wallmask/internal/platform"
 	"github.com/rhobro/wallmask/pkg/proxy"
 	"sync"
 	"testing"
 )
 
 func TestIndexers(t *testing.T) {
+	platform.Init()
+
 	// proxy list
 	var pMu sync.Mutex
 	proxies := make(map[string]*proxy.Proxy)

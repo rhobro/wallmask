@@ -15,10 +15,6 @@ import (
 func init() {
 	src := "shiftytr.github"
 
-	branchesAPI := fmt.Sprintf("https://%s@api.github.com/repos/ShiftyTR/Proxy-List/branches", cfgcat.C.GetStringValue("ghOAuthToken", "", nil))
-	commitsAPI := fmt.Sprintf("https://%s@api.github.com/repos/ShiftyTR/Proxy-List/commits?per_page=100", cfgcat.C.GetStringValue("ghOAuthToken", "", nil))
-	commitsAPI += "&sha=%s"
-
 	bases := map[proxy.Protocol]string{
 		proxy.HTTP:   "https://raw.githubusercontent.com/ShiftyTR/Proxy-List/%s/http.txt",
 		proxy.HTTPS:  "https://raw.githubusercontent.com/ShiftyTR/Proxy-List/%s/https.txt",
@@ -56,6 +52,10 @@ func init() {
 	var latestSHA string
 
 	run := func() {
+		branchesAPI := fmt.Sprintf("https://%s@api.github.com/repos/ShiftyTR/Proxy-List/branches", cfgcat.C.GetStringValue("ghOAuthToken", "", nil))
+		commitsAPI := fmt.Sprintf("https://%s@api.github.com/repos/ShiftyTR/Proxy-List/commits?per_page=100", cfgcat.C.GetStringValue("ghOAuthToken", "", nil))
+		commitsAPI += "&sha=%s"
+
 		// list branchesAPI for latest commit
 		rq, _ := http.NewRequest("GET", branchesAPI, nil)
 		rq.Header.Set("User-Agent", httputil.RandUA())

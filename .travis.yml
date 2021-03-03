@@ -2,10 +2,6 @@ language: go
 go:
   - 1.x
   - master
-os:
-  - linux
-  - windows
-  - osx
 
 install:
   # get dependencies

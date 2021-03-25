@@ -32,13 +32,13 @@ func init() {
 		rq.Header.Set("User-Agent", httputil.RandUA())
 		rsp, err := httputil.RQUntil(http.DefaultClient, rq)
 		if err != nil {
-			//proxyErr(src, err)
+			proxyErr(src, err)
 			return
 		}
 		defer rsp.Body.Close()
 		page, err := goquery.NewDocumentFromReader(rsp.Body)
 		if err != nil {
-			//proxyErr(src, err)
+			proxyErr(src, err)
 			return
 		}
 

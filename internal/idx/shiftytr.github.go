@@ -28,7 +28,7 @@ func init() {
 			rq.Header.Set("User-Agent", httputil.RandUA())
 			rsp, err := httputil.RQUntil(http.DefaultClient, rq)
 			if err != nil {
-				//proxyErr(src, err)
+				proxyErr(src, err)
 				return
 			}
 			rd := bufio.NewScanner(rsp.Body)
@@ -61,14 +61,14 @@ func init() {
 		rq.Header.Set("User-Agent", httputil.RandUA())
 		rsp, err := httputil.RQUntil(http.DefaultClient, rq)
 		if err != nil {
-			//proxyErr(src, err)
+			proxyErr(src, err)
 			return
 		}
 		defer rsp.Body.Close()
 		// unmarshal
 		bd, err := ioutil.ReadAll(rsp.Body)
 		if err != nil {
-			//proxyErr(src, err)
+			proxyErr(src, err)
 			return
 		}
 		var branches []struct {
@@ -79,7 +79,7 @@ func init() {
 		}
 		err = json.Unmarshal(bd, &branches)
 		if err != nil {
-			//proxyErr(src, err)
+			proxyErr(src, err)
 			return
 		}
 
@@ -112,16 +112,20 @@ func init() {
 				rq.Header.Set("User-Agent", httputil.RandUA())
 				rsp, err := httputil.RQUntil(http.DefaultClient, rq)
 				if err != nil {
-					//proxyErr(src, err)
+					proxyErr(src, err)
 					continue
 				}
 				bd, err := ioutil.ReadAll(rsp.Body)
+				if err != nil {
+					proxyErr(src, err)
+					continue
+				}
 				rsp.Body.Close()
 
 				var commits []struct{ SHA string }
 				err = json.Unmarshal(bd, &commits)
 				if err != nil {
-					//proxyErr(src, err)
+					proxyErr(src, err)
 					continue
 				}
 				if len(commits) == 1 || isTest {

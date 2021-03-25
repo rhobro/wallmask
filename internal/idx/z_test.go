@@ -3,16 +3,9 @@ package idx
 import (
 	"github.com/rhobro/wallmask/internal/platform"
 	"github.com/rhobro/wallmask/pkg/proxy"
-	"net/http"
-	"net/url"
 	"sync"
 	"testing"
 )
-
-func init() {
-	u, _ := url.Parse("http://localhost:9090")
-	http.DefaultTransport.(*http.Transport).Proxy = http.ProxyURL(u)
-}
 
 func TestIndexers(t *testing.T) {
 	platform.Init()

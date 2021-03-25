@@ -14,7 +14,7 @@ func init() {
 	src := "proxydb.net"
 	base := "http://www.proxydb.net/?protocol=http&protocol=https&protocol=socks5&anonlvl=4"
 
-	run := func() {
+	run := func(bool) {
 		rq, _ := http.NewRequest("GET", base, nil)
 		rq.Header.Set("User-Agent", httputil.RandUA())
 		rsp, err := httputil.RQUntil(http.DefaultClient, rq)

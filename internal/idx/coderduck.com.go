@@ -17,7 +17,7 @@ func init() {
 	src := "coderduck.com"
 	base := "https://www.coderduck.com/free-proxy-list"
 
-	run := func() {
+	run := func(bool) {
 		// Request
 		rq, _ := http.NewRequest("GET", base, nil)
 		rq.Header.Set("User-Agent", httputil.RandUA())
@@ -64,8 +64,7 @@ func init() {
 		}
 	}
 
-	//idxrs[src] = &idx{
-	_ = &idx{
+	idxrs[src] = &idx{
 		Period: 10 * time.Minute,
 		run:    run,
 	}

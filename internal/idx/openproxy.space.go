@@ -49,7 +49,7 @@ func init() {
 		SOCKS5 = iota + 2
 	)
 
-	run := func() {
+	run := func(isTest bool) {
 		var skip int
 		for {
 			base.RawQuery = rawQuery(skip)
@@ -90,7 +90,7 @@ func init() {
 				continue
 			}
 
-			if len(lists) == 0 {
+			if len(lists) == 0 || isTest {
 				firstIdxd = true
 				break
 			}

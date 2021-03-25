@@ -13,7 +13,7 @@ func init() {
 	src := "hidemy.name"
 	base := "https://hidemy.name/en/proxy-list/?type=hs5"
 
-	run := func() {
+	run := func(bool) {
 		// Request
 		rq, _ := http.NewRequest("GET", base, nil)
 		rq.Header.Set("User-Agent", httputil.RandUA())

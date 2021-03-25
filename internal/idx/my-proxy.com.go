@@ -38,7 +38,7 @@ func init() {
 		recursiveExtract(proto, page.Find("div.to-lock").Get(0).FirstChild)
 	}
 
-	run := func() {
+	run := func(bool) {
 		for sc, ur := range bases {
 			scrape(sc, ur)
 		}

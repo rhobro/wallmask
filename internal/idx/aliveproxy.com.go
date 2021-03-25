@@ -51,14 +51,13 @@ func init() {
 		})
 	}
 
-	run := func() {
+	run := func(bool) {
 		for sc, ur := range bases {
 			scrape(sc, ur)
 		}
 	}
 
-	//idxrs[src] = &idx{
-	_ = &idx{
+	idxrs[src] = &idx{
 		Period: 5 * time.Minute,
 		run:    run,
 	}

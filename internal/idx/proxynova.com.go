@@ -14,7 +14,7 @@ func init() {
 	src := "proxynova.com"
 	base := "https://www.proxynova.com/proxy-server-list/elite-proxies/"
 
-	run := func() {
+	run := func(bool) {
 		// Request
 		rq, _ := http.NewRequest("GET", base, nil)
 		rq.Header.Set("User-Agent", httputil.RandUA())

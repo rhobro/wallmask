@@ -46,7 +46,7 @@ func init() {
 		rsp.Body.Close()
 	}
 
-	run := func() {
+	run := func(bool) {
 		v := url.Values{}
 		v.Set("request", "displayproxies")
 		v.Set("protocol", "http")

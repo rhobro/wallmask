@@ -15,15 +15,15 @@ var idxrs = make(map[string]*idx)
 
 type idx struct {
 	Period time.Duration
-	run    func()
+	run    func(isTest bool)
 
 	last    time.Time
 	running bool
 }
 
 // presumes scheduler has set running and last
-func (i *idx) F() {
-	i.run()
+func (i *idx) F(isTest bool) {
+	i.run(isTest)
 	i.running = false
 }
 
@@ -33,7 +33,7 @@ func scheduler() {
 			if time.Since(i.last) > i.Period && !i.running {
 				i.last = time.Now()
 				i.running = true
-				go i.F()
+				go i.F(false)
 			}
 		}
 	}

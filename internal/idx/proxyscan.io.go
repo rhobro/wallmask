@@ -25,7 +25,7 @@ func init() {
 	v.Add("selectedType", "SOCKS5")
 	v.Set("page", "0")
 
-	run := func() {
+	run := func(bool) {
 		v.Set("_", strconv.FormatInt(time.Now().UnixNano()/1e6, 10))
 		// Request
 		rq, _ := http.NewRequest("POST", base, strings.NewReader(v.Encode()))

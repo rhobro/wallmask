@@ -20,7 +20,7 @@ func init() {
 	}
 	extractB64RGX, _ := regexp.Compile("\"(.*)\"")
 
-	run := func() {
+	run := func(bool) {
 		for _, base := range urls {
 			// Request
 			rq, _ := http.NewRequest("GET", base, nil)

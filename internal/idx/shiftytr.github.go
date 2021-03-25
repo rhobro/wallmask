@@ -51,7 +51,7 @@ func init() {
 	var firstIdxd bool
 	var latestSHA string
 
-	run := func() {
+	run := func(isTest bool) {
 		branchesAPI := fmt.Sprintf("https://%s@api.github.com/repos/ShiftyTR/Proxy-List/branches", cfgcat.C.GetStringValue("ghOAuthToken", "", nil))
 		commitsAPI := fmt.Sprintf("https://%s@api.github.com/repos/ShiftyTR/Proxy-List/commits?per_page=100", cfgcat.C.GetStringValue("ghOAuthToken", "", nil))
 		commitsAPI += "&sha=%s"
@@ -124,7 +124,7 @@ func init() {
 					//proxyErr(src, err)
 					continue
 				}
-				if len(commits) == 1 {
+				if len(commits) == 1 || isTest {
 					break
 				}
 

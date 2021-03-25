@@ -13,7 +13,7 @@ func init() {
 	src := "free-proxy-list.net"
 	base := "https://free-proxy-list.net/"
 
-	run := func() {
+	run := func(bool) {
 		// Request
 		rq, _ := http.NewRequest("GET", base, nil)
 		rq.Header.Set("User-Agent", httputil.RandUA())

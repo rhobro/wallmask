@@ -20,3 +20,16 @@ func Init() {
 		Environment:      "server",
 	}, true)
 }
+
+func InitTest() {
+	// tmp files
+	fileio.Init("", "wmidx")
+	// cfgcat
+	cfgcat.InitCustom(consts.ConfigCatConfig, true)
+	// sentry
+	sentree.Init(sentry.ClientOptions{
+		Dsn:              cfgcat.C.GetStringValue("sentryDSN", "", nil),
+		AttachStacktrace: true,
+		Environment:      "test",
+	}, true)
+}

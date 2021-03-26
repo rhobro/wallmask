@@ -5,7 +5,7 @@ import (
 	"github.com/rhobro/goutils/pkg/fileio"
 	"github.com/rhobro/goutils/pkg/httputil"
 	"github.com/rhobro/goutils/pkg/services/sentree"
-	"github.com/rhobro/wallmask/pkg/proxy"
+	"github.com/rhobro/wallmask/pkg/wallmask"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -38,7 +38,7 @@ func init() {
 		if sl.Length() > 0 {
 			raw := strings.TrimSpace(sl.Get(0).FirstChild.Data)
 			for _, line := range strings.Split(raw, "\n") {
-				p, err := proxy.New(line)
+				p, err := wallmask.New(line)
 				if err == nil {
 					Add(p)
 				}

@@ -3,7 +3,7 @@ package idx
 import (
 	"bufio"
 	"github.com/rhobro/goutils/pkg/httputil"
-	"github.com/rhobro/wallmask/pkg/proxy"
+	"github.com/rhobro/wallmask/pkg/wallmask"
 	"io"
 	"net/http"
 	"net/url"
@@ -15,7 +15,7 @@ func init() {
 	src := "proxyscrape.com"
 	base := "https://api.proxyscrape.com/v2/?"
 
-	scrape := func(sch proxy.Protocol, v *url.Values) {
+	scrape := func(sch wallmask.Protocol, v *url.Values) {
 		// Request
 		rq, _ := http.NewRequest("GET", base+v.Encode(), nil)
 		rq.Header.Set("User-Agent", httputil.RandUA())
@@ -38,7 +38,7 @@ func init() {
 			line = strings.TrimSpace(line)
 
 			// add after parsing string
-			p, err := proxy.New(line)
+			p, err := wallmask.New(line)
 			if err == nil {
 				Add(p)
 			}
@@ -54,13 +54,13 @@ func init() {
 		v.Set("country", "all")
 		v.Set("ssl", "all")
 		v.Set("anonymity", "elite")
-		scrape(proxy.HTTP, &v)
+		scrape(wallmask.HTTP, &v)
 		v = url.Values{}
 		v.Set("request", "displayproxies")
 		v.Set("protocol", "socks5")
 		v.Set("timeout", "10000")
 		v.Set("country", "all")
-		scrape(proxy.SOCKS5, &v)
+		scrape(wallmask.SOCKS5, &v)
 	}
 
 	idxrs[src] = &idx{

@@ -3,7 +3,7 @@ package idx
 import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/rhobro/goutils/pkg/httputil"
-	"github.com/rhobro/wallmask/pkg/proxy"
+	"github.com/rhobro/wallmask/pkg/wallmask"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -50,18 +50,18 @@ func init() {
 				return
 			}
 
-			p := &proxy.Proxy{
+			p := &wallmask.Proxy{
 				IPv4: ip,
 				Port: uint16(port),
 			}
 			if !strings.Contains(protos, ",") {
 				switch protos {
 				case "HTTP":
-					p.Proto = proxy.HTTP
+					p.Proto = wallmask.HTTP
 				case "HTTPS":
-					p.Proto = proxy.HTTPS
+					p.Proto = wallmask.HTTPS
 				case "SOCKS5":
-					p.Proto = proxy.SOCKS5
+					p.Proto = wallmask.SOCKS5
 				}
 			}
 			Add(p)

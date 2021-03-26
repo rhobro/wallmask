@@ -6,7 +6,7 @@ import (
 	"github.com/rhobro/goutils/pkg/httputil"
 	"github.com/rhobro/goutils/pkg/services/sentree"
 	"github.com/rhobro/wallmask/internal/platform/db"
-	"github.com/rhobro/wallmask/pkg/proxy"
+	"github.com/rhobro/wallmask/pkg/wallmask"
 	"log"
 	"time"
 )
@@ -44,7 +44,7 @@ const sqlInsert = `
 	VALUES ($1, $2, $3, $4, $5);`
 
 // add func made into a variable for testing purposes
-var Add = func(p *proxy.Proxy) {
+var Add = func(p *wallmask.Proxy) {
 	if p != nil {
 		if httputil.IsValidIPv4(p.IPv4) {
 			d := details(p)
@@ -65,7 +65,7 @@ type detail struct {
 	Ok   bool
 }
 
-func details(p *proxy.Proxy) *detail {
+func details(p *wallmask.Proxy) *detail {
 	// test
 	last, ok := test(p)
 

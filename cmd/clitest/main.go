@@ -3,7 +3,7 @@ package main
 import (
 	"bytes"
 	"github.com/rhobro/goutils/pkg/services/sentree"
-	"github.com/rhobro/wallmask/pkg/proxy"
+	"github.com/rhobro/wallmask/pkg/wallmask"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -11,7 +11,7 @@ import (
 )
 
 func init() {
-	proxy.Init(25, true)
+	wallmask.Init(25, true)
 }
 
 func main() {
@@ -20,7 +20,7 @@ func main() {
 	for {
 		http.DefaultClient = &http.Client{
 			Transport: &http.Transport{
-				Proxy: proxy.Rand(),
+				Proxy: wallmask.Rand(),
 			},
 		}
 

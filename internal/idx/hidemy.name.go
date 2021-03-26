@@ -3,7 +3,7 @@ package idx
 import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/rhobro/goutils/pkg/httputil"
-	"github.com/rhobro/wallmask/pkg/proxy"
+	"github.com/rhobro/wallmask/pkg/wallmask"
 	"net/http"
 	"strconv"
 	"time"
@@ -35,7 +35,7 @@ func init() {
 			if err != nil {
 				return
 			}
-			Add(&proxy.Proxy{
+			Add(&wallmask.Proxy{
 				IPv4: ip,
 				Port: uint16(port),
 			})

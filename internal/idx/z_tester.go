@@ -7,7 +7,7 @@ import (
 	"github.com/jackc/pgx/v4"
 	"github.com/rhobro/goutils/pkg/services/sentree"
 	"github.com/rhobro/wallmask/internal/platform/db"
-	"github.com/rhobro/wallmask/pkg/proxy"
+	"github.com/rhobro/wallmask/pkg/wallmask"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -39,7 +39,7 @@ const (
 
 type testInst struct {
 	ID      int64
-	P       *proxy.Proxy
+	P       *wallmask.Proxy
 	Working bool
 }
 
@@ -66,7 +66,7 @@ func dbTest(working bool, order sqlOrder, limit int) {
 
 		// get proxy and test
 		for rs.Next() {
-			var p proxy.Proxy
+			var p wallmask.Proxy
 			var id int64
 			err := rs.Scan(&id, &p.Proto, &p.IPv4, &p.Port)
 			if err != nil {
@@ -108,9 +108,9 @@ func testWorker() {
 	}
 }
 
-var protocols = []proxy.Protocol{proxy.HTTP, proxy.HTTPS, proxy.SOCKS5}
+var protocols = []wallmask.Protocol{wallmask.HTTP, wallmask.HTTPS, wallmask.SOCKS5}
 
-func test(p *proxy.Proxy) (lastTested time.Time, ok bool) {
+func test(p *wallmask.Proxy) (lastTested time.Time, ok bool) {
 	// if no protocol
 	if p.Proto == "" {
 		// test each protocol
@@ -161,7 +161,7 @@ const testTimeout = 1 * time.Second
 	pubIP = ip.IP
 }*/
 
-func testRQ(p *proxy.Proxy) (lastTested time.Time, ok bool) {
+func testRQ(p *wallmask.Proxy) (lastTested time.Time, ok bool) {
 	u, err := p.URL()
 	if err == nil {
 		cli := &http.Client{

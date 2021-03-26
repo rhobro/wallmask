@@ -3,7 +3,7 @@ package idx
 import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/rhobro/goutils/pkg/httputil"
-	"github.com/rhobro/wallmask/pkg/proxy"
+	"github.com/rhobro/wallmask/pkg/wallmask"
 	"golang.org/x/net/html"
 	"net/http"
 	"strings"
@@ -12,12 +12,12 @@ import (
 
 func init() {
 	src := "my-proxy.com"
-	bases := map[proxy.Protocol]string{
-		proxy.HTTP:   "https://www.my-proxy.com/free-elite-proxy.html",
-		proxy.SOCKS5: "https://www.my-proxy.com/free-socks-5-proxy.html",
+	bases := map[wallmask.Protocol]string{
+		wallmask.HTTP:   "https://www.my-proxy.com/free-elite-proxy.html",
+		wallmask.SOCKS5: "https://www.my-proxy.com/free-socks-5-proxy.html",
 	}
 
-	scrape := func(proto proxy.Protocol, base string) {
+	scrape := func(proto wallmask.Protocol, base string) {
 		// Request
 		rq, _ := http.NewRequest("GET", base, nil)
 		rq.Header.Set("User-Agent", httputil.RandUA())
@@ -50,7 +50,7 @@ func init() {
 	}
 }
 
-func recursiveExtract(proto proxy.Protocol, n *html.Node) {
+func recursiveExtract(proto wallmask.Protocol, n *html.Node) {
 	// Process text
 	if n.Data != "br" {
 		d := n.Data
@@ -59,7 +59,7 @@ func recursiveExtract(proto proxy.Protocol, n *html.Node) {
 			d = d[:hashI]
 		}
 
-		p, err := proxy.New(d)
+		p, err := wallmask.New(d)
 		if err == nil {
 			Add(p)
 		}

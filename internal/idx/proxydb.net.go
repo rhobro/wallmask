@@ -4,7 +4,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/rhobro/goutils/pkg/coll"
 	"github.com/rhobro/goutils/pkg/httputil"
-	"github.com/rhobro/wallmask/pkg/proxy"
+	"github.com/rhobro/wallmask/pkg/wallmask"
 	"net/http"
 	"strings"
 	"time"
@@ -35,11 +35,11 @@ func init() {
 			proto := strings.TrimSpace(sl.Find("td").Get(4).FirstChild.Data)
 
 			if coll.ContainsStr([]string{"HTTP", "HTTPS", "SOCKS5"}, proto) {
-				p, err := proxy.New(ip)
+				p, err := wallmask.New(ip)
 				if err != nil {
 					return
 				}
-				p.Proto = proxy.Protocol(strings.ToLower(proto))
+				p.Proto = wallmask.Protocol(strings.ToLower(proto))
 				Add(p)
 			}
 		})

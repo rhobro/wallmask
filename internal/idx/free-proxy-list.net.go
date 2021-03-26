@@ -3,7 +3,7 @@ package idx
 import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/rhobro/goutils/pkg/httputil"
-	"github.com/rhobro/wallmask/pkg/proxy"
+	"github.com/rhobro/wallmask/pkg/wallmask"
 	"net/http"
 	"strings"
 	"time"
@@ -31,7 +31,7 @@ func init() {
 
 		rawList := strings.Split(page.Find("div.modal-body > textarea").Get(0).FirstChild.Data, "\n\n")[1]
 		for _, line := range strings.Split(strings.TrimSpace(rawList), "\n") {
-			p, err := proxy.New(line)
+			p, err := wallmask.New(line)
 			if err == nil {
 				Add(p)
 			}

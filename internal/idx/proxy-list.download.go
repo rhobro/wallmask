@@ -3,7 +3,7 @@ package idx
 import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/rhobro/goutils/pkg/httputil"
-	"github.com/rhobro/wallmask/pkg/proxy"
+	"github.com/rhobro/wallmask/pkg/wallmask"
 	"net/http"
 	"strconv"
 	"time"
@@ -11,13 +11,13 @@ import (
 
 func init() {
 	src := "proxy-list.download"
-	bases := map[proxy.Protocol]string{
-		proxy.HTTP:   "https://www.proxy-list.download/HTTP",
-		proxy.HTTPS:  "https://www.proxy-list.download/HTTPS",
-		proxy.SOCKS5: "https://www.proxy-list.download/SOCKS5",
+	bases := map[wallmask.Protocol]string{
+		wallmask.HTTP:   "https://www.proxy-list.download/HTTP",
+		wallmask.HTTPS:  "https://www.proxy-list.download/HTTPS",
+		wallmask.SOCKS5: "https://www.proxy-list.download/SOCKS5",
 	}
 
-	scrape := func(sch proxy.Protocol, base string) {
+	scrape := func(sch wallmask.Protocol, base string) {
 		// Request
 		rq, _ := http.NewRequest("GET", base, nil)
 		rq.Header.Set("User-Agent", httputil.RandUA())
@@ -40,7 +40,7 @@ func init() {
 				return
 			}
 
-			Add(&proxy.Proxy{
+			Add(&wallmask.Proxy{
 				Proto: sch,
 				IPv4:  ip,
 				Port:  uint16(port),

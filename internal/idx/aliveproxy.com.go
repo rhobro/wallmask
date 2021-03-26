@@ -3,7 +3,7 @@ package idx
 import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/rhobro/goutils/pkg/httputil"
-	"github.com/rhobro/wallmask/pkg/proxy"
+	"github.com/rhobro/wallmask/pkg/wallmask"
 	"net/http"
 	"strings"
 	"time"
@@ -11,12 +11,12 @@ import (
 
 func init() {
 	src := "aliveproxy.com"
-	bases := map[proxy.Protocol]string{
-		proxy.HTTP:   "http://www.aliveproxy.com/high-anonymity-proxy-list/",
-		proxy.SOCKS5: "http://aliveproxy.com/socks5-list/",
+	bases := map[wallmask.Protocol]string{
+		wallmask.HTTP:   "http://www.aliveproxy.com/high-anonymity-proxy-list/",
+		wallmask.SOCKS5: "http://aliveproxy.com/socks5-list/",
 	}
 
-	scrape := func(sch proxy.Protocol, base string) {
+	scrape := func(sch wallmask.Protocol, base string) {
 		// Request
 		rq, _ := http.NewRequest("GET", base, nil)
 		rq.Header.Set("User-Agent", httputil.RandUA())
@@ -42,7 +42,7 @@ func init() {
 			proxyType := strings.ToLower(sl.Find("td").Get(2).FirstChild.Data)
 			if strings.Contains(proxyType, "high") {
 				raw := strings.TrimSpace(sl.Find("td").Get(0).FirstChild.Data)
-				p, err := proxy.New(raw)
+				p, err := wallmask.New(raw)
 				if err == nil {
 					p.Proto = sch
 					Add(p)

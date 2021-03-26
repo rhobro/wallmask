@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/rhobro/goutils/pkg/httputil"
 	"github.com/rhobro/goutils/pkg/services/cfgcat"
-	"github.com/rhobro/wallmask/pkg/proxy"
+	"github.com/rhobro/wallmask/pkg/wallmask"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -15,10 +15,10 @@ import (
 func init() {
 	src := "shiftytr.github"
 
-	bases := map[proxy.Protocol]string{
-		proxy.HTTP:   "https://raw.githubusercontent.com/ShiftyTR/Proxy-List/%s/http.txt",
-		proxy.HTTPS:  "https://raw.githubusercontent.com/ShiftyTR/Proxy-List/%s/https.txt",
-		proxy.SOCKS5: "https://raw.githubusercontent.com/ShiftyTR/Proxy-List/%s/socks5.txt",
+	bases := map[wallmask.Protocol]string{
+		wallmask.HTTP:   "https://raw.githubusercontent.com/ShiftyTR/Proxy-List/%s/http.txt",
+		wallmask.HTTPS:  "https://raw.githubusercontent.com/ShiftyTR/Proxy-List/%s/https.txt",
+		wallmask.SOCKS5: "https://raw.githubusercontent.com/ShiftyTR/Proxy-List/%s/socks5.txt",
 	}
 
 	scrape := func(sha string) {
@@ -38,7 +38,7 @@ func init() {
 				if err != nil {
 					continue
 				}
-				p, err := proxy.New(text)
+				p, err := wallmask.New(text)
 				if err != nil {
 					continue
 				}

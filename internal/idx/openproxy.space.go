@@ -6,7 +6,7 @@ import (
 	"github.com/rhobro/goutils/pkg/coll"
 	"github.com/rhobro/goutils/pkg/fileio"
 	"github.com/rhobro/goutils/pkg/httputil"
-	"github.com/rhobro/wallmask/pkg/proxy"
+	"github.com/rhobro/wallmask/pkg/wallmask"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -98,13 +98,13 @@ func init() {
 
 			// iterate through index
 			for _, l := range lists {
-				var sch proxy.Protocol
+				var sch wallmask.Protocol
 				if coll.ContainsInt(l.Protocols, HTTP) {
-					sch = proxy.HTTP
+					sch = wallmask.HTTP
 				} else if coll.ContainsInt(l.Protocols, HTTPS) {
-					sch = proxy.HTTPS
+					sch = wallmask.HTTPS
 				} else if coll.ContainsInt(l.Protocols, SOCKS5) {
-					sch = proxy.SOCKS5
+					sch = wallmask.SOCKS5
 				}
 
 				if sch != "" {
@@ -139,7 +139,7 @@ func init() {
 						// add
 						for _, country := range cList.Countries {
 							for _, raw := range country.Proxies {
-								p, err := proxy.New(raw)
+								p, err := wallmask.New(raw)
 								if err == nil {
 									Add(p)
 								}
@@ -155,7 +155,7 @@ func init() {
 
 						// add
 						for _, raw := range list.Proxies {
-							p, err := proxy.New(raw)
+							p, err := wallmask.New(raw)
 							if err == nil {
 								Add(p)
 							}

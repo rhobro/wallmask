@@ -13,7 +13,7 @@ install:
 
 script:
   - docker-compose up -d # test docker compose config
-  - go test -v -coverprofile=coverage.txt -covermode=atomic ./... # unit tests for codecov TODO test for race
+  - go test -race -v -coverprofile=coverage.txt -covermode=atomic ./... # unit tests for codecov
 
 after_success:
   # codecov

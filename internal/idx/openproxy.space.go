@@ -140,7 +140,7 @@ func init() {
 				continue
 			}
 
-			if len(lists) == 0 || isTest {
+			if len(lists) == 0 {
 				firstIdxd = true
 				break
 			}
@@ -166,6 +166,10 @@ func init() {
 					}
 
 					listExtract(l)
+
+					if isTest {
+						return
+					}
 				}
 			}
 		}

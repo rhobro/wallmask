@@ -128,7 +128,7 @@ func init() {
 					proxyErr(src, err)
 					continue
 				}
-				if len(commits) == 1 || isTest {
+				if len(commits) == 1 {
 					break
 				}
 
@@ -137,6 +137,10 @@ func init() {
 					scrape(s.SHA)
 					if i == len(commits)-2 {
 						lastSHA = s.SHA
+					}
+
+					if isTest {
+						return
 					}
 				}
 			}

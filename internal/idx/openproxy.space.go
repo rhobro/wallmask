@@ -49,6 +49,56 @@ func init() {
 		SOCKS5 = iota + 2
 	)
 
+	listExtract := func(l index) {
+		rq, _ := http.NewRequest("GET", listBase+l.Code, nil)
+		rq.Header.Set("User-Agent", httputil.RandUA())
+		rsp, err := httputil.RQUntil(http.DefaultClient, rq)
+		if err != nil {
+			proxyErr(src, err)
+			return
+		}
+		bd, err := ioutil.ReadAll(rsp.Body)
+		if err != nil {
+			proxyErr(src, err)
+			return
+		}
+
+		// Unmarshal
+		if l.WithCountries {
+			var cList countryList
+			err := json.Unmarshal(bd, &cList)
+			if err != nil {
+				proxyErr(src, err)
+				return
+			}
+
+			// add
+			for _, country := range cList.Countries {
+				for _, raw := range country.Proxies {
+					p, err := wallmask.New(raw)
+					if err == nil {
+						Add(p)
+					}
+				}
+			}
+
+		} else {
+			var list longList
+			err := json.Unmarshal(bd, &list)
+			if err != nil {
+				proxyErr(src, err)
+			}
+
+			// add
+			for _, raw := range list.Proxies {
+				p, err := wallmask.New(raw)
+				if err == nil {
+					Add(p)
+				}
+			}
+		}
+	}
+
 	run := func(isTest bool) {
 		var skip int
 		for {
@@ -115,52 +165,7 @@ func init() {
 						return
 					}
 
-					rq, _ := http.NewRequest("GET", listBase+l.Code, nil)
-					rq.Header.Set("User-Agent", httputil.RandUA())
-					rsp, err := httputil.RQUntil(http.DefaultClient, rq)
-					if err != nil {
-						proxyErr(src, err)
-						continue
-					}
-					bd, err := ioutil.ReadAll(rsp.Body)
-					if err != nil {
-						proxyErr(src, err)
-						continue
-					}
-
-					// Unmarshal
-					if l.WithCountries {
-						var cList countryList
-						err := json.Unmarshal(bd, &cList)
-						if err != nil {
-							proxyErr(src, err)
-						}
-
-						// add
-						for _, country := range cList.Countries {
-							for _, raw := range country.Proxies {
-								p, err := wallmask.New(raw)
-								if err == nil {
-									Add(p)
-								}
-							}
-						}
-
-					} else {
-						var list longList
-						err := json.Unmarshal(bd, &list)
-						if err != nil {
-							proxyErr(src, err)
-						}
-
-						// add
-						for _, raw := range list.Proxies {
-							p, err := wallmask.New(raw)
-							if err == nil {
-								Add(p)
-							}
-						}
-					}
+					listExtract(l)
 				}
 			}
 		}

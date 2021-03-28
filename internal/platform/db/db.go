@@ -9,9 +9,11 @@ import (
 	"github.com/rhobro/goutils/pkg/services/cfgcat"
 	"github.com/rhobro/goutils/pkg/services/sentree"
 	"log"
+	"sync"
 )
 
 // Concurrency-safe pgxpool.Pool instead of pgx.Conn
+var mu sync.RWMutex
 var db *pgxpool.Pool
 
 var reqTables = map[string]string{
@@ -63,11 +65,14 @@ func Connect(verbose bool) {
 }
 
 func Close() {
-	db.Close()
+	mu.Lock()
 }
 
 // For executing SQL in something like an INSERT or UPDATE statement without returning any rows.
 func Exec(sql string, args ...interface{}) {
+	mu.RLock()
+	defer mu.RUnlock()
+
 	rs, err := db.Query(context.Background(), sql, args...)
 	if err != nil {
 		sentree.C.CaptureException(err, nil, nil)
@@ -85,6 +90,9 @@ func Exec(sql string, args ...interface{}) {
 // QueryResultFormatsByOID may be used as the first args to control exactly how the query is executed. This is rarely
 // needed. See the documentation for those types for details.
 func Query(sql string, args ...interface{}) pgx.Rows {
+	mu.RLock()
+	defer mu.RUnlock()
+
 	rs, err := db.Query(context.Background(), sql, args...)
 	if err != nil {
 		sentree.C.CaptureException(err, nil, nil)
@@ -113,5 +121,7 @@ func Query(sql string, args ...interface{}) pgx.Rows {
 // querying is deferred until calling Scan on the returned Row. That Row will
 // error with ErrNoRows if no rows are returned.
 func QueryRow(sql string, args ...interface{}) pgx.Row {
+	mu.RLock()
+	defer mu.RUnlock()
 	return db.QueryRow(context.Background(), sql, args...)
 }

@@ -9,7 +9,7 @@ require (
 	github.com/getsentry/sentry-go v0.9.0
 	github.com/jackc/pgproto3/v2 v2.0.7 // indirect
 	github.com/jackc/pgx/v4 v4.10.1
-	github.com/rhobro/goutils v1.4.2
+	github.com/rhobro/goutils v1.5.0
 	github.com/sirupsen/logrus v1.7.0 // indirect
 	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad // indirect
 	golang.org/x/net v0.0.0-20210119194325-5f4716e94777

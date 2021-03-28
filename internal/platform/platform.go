@@ -9,6 +9,7 @@ import (
 	"github.com/rhobro/wallmask/internal/platform/db"
 	"math/rand"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -25,8 +26,6 @@ func InitTest() {
 }
 
 func cInit(env string) {
-	// tmp files
-	fileio.Init("", "wmidx")
 	// cfgcat
 	cfgcat.InitCustom(consts.ConfigCatConfig, true)
 	// sentry
@@ -40,8 +39,17 @@ func cInit(env string) {
 	}, true)
 	// db
 	db.Connect(true)
+	// tmp files
+	fileio.Init("", "wmidx")
 
 	if env != "test" {
 		rand.Seed(time.Now().UnixNano())
 	}
+}
+
+func Close() {
+	fileio.Close()
+	db.Close()
+	cfgcat.C.Close()
+	os.Exit(0)
 }

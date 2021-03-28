@@ -2,12 +2,9 @@ package main
 
 import (
 	"bufio"
-	"github.com/getsentry/sentry-go"
-	"github.com/rhobro/goutils/pkg/fileio"
 	"github.com/rhobro/goutils/pkg/services/cfgcat"
-	"github.com/rhobro/goutils/pkg/services/sentree"
 	"github.com/rhobro/wallmask/internal/idx"
-	"github.com/rhobro/wallmask/internal/platform/consts"
+	"github.com/rhobro/wallmask/internal/platform"
 	"github.com/rhobro/wallmask/internal/platform/db"
 	"log"
 	"os"
@@ -16,16 +13,7 @@ import (
 )
 
 func init() {
-	// tmp files
-	fileio.Init("", "wmidx")
-	// cfgcat
-	cfgcat.InitCustom(consts.ConfigCatConfig, true)
-	// sentry
-	sentree.Init(sentry.ClientOptions{
-		Dsn:              cfgcat.C.GetStringValue("sentryDSN", "", nil),
-		AttachStacktrace: true,
-		Environment:      "server",
-	}, true)
+	platform.Init()
 }
 
 func main() {

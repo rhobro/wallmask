@@ -27,7 +27,7 @@ const (
 )
 
 // to control number of test workers started
-const nTestWorkers = 100
+const nTestWorkers = 25
 
 // for deciding if the select statements should order ASC or DESC
 type sqlOrder string

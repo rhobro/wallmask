@@ -13,7 +13,6 @@ import (
 
 // Concurrency-safe pgxpool.Pool instead of pgx.Conn
 var db *pgxpool.Pool
-var connected bool
 
 var reqTables = map[string]string{
 	"proxies": `
@@ -32,7 +31,7 @@ func Connect(verbose bool) {
 	var err error
 	db, err = pgxpool.Connect(context.Background(), cfgcat.C.GetStringValue("dbURL", "", nil))
 	if err != nil {
-		log.Fatal(fmt.Errorf("{db} open connection to db: %s\n", err))
+		sentree.FatalCaptureErr(fmt.Errorf("{db} open connection to db: %s\n", err))
 	}
 
 	// List tables
@@ -61,7 +60,6 @@ func Connect(verbose bool) {
 	if verbose {
 		log.Print("{db} connected")
 	}
-	connected = true
 }
 
 func Close() {
@@ -70,10 +68,6 @@ func Close() {
 
 // For executing SQL in something like an INSERT or UPDATE statement without returning any rows.
 func Exec(sql string, args ...interface{}) {
-	if !connected {
-		Connect(true)
-	}
-
 	rs, err := db.Query(context.Background(), sql, args...)
 	if err != nil {
 		sentree.C.CaptureException(err, nil, nil)
@@ -91,10 +85,6 @@ func Exec(sql string, args ...interface{}) {
 // QueryResultFormatsByOID may be used as the first args to control exactly how the query is executed. This is rarely
 // needed. See the documentation for those types for details.
 func Query(sql string, args ...interface{}) pgx.Rows {
-	if !connected {
-		Connect(true)
-	}
-
 	rs, err := db.Query(context.Background(), sql, args...)
 	if err != nil {
 		sentree.C.CaptureException(err, nil, nil)
@@ -123,9 +113,5 @@ func Query(sql string, args ...interface{}) pgx.Rows {
 // querying is deferred until calling Scan on the returned Row. That Row will
 // error with ErrNoRows if no rows are returned.
 func QueryRow(sql string, args ...interface{}) pgx.Row {
-	if !connected {
-		Connect(true)
-	}
-
 	return db.QueryRow(context.Background(), sql, args...)
 }

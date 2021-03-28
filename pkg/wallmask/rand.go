@@ -2,10 +2,8 @@ package wallmask
 
 import (
 	"fmt"
-	"github.com/getsentry/sentry-go"
-	"github.com/rhobro/goutils/pkg/services/cfgcat"
 	"github.com/rhobro/goutils/pkg/services/sentree"
-	"github.com/rhobro/wallmask/internal/platform/consts"
+	"github.com/rhobro/wallmask/internal/platform"
 	"github.com/rhobro/wallmask/internal/platform/db"
 	"log"
 	"net/http"
@@ -25,20 +23,7 @@ func Rand() func(*http.Request) (*url.URL, error) {
 }
 
 func Init(bSize int, verbose bool) {
-	// cfgcat
-	cfgcat.InitCustom(consts.ConfigCatConfig, verbose)
-	// sentry
-	sentree.Init(sentry.ClientOptions{
-		Dsn:              cfgcat.C.GetStringValue("sentryDSN", "", nil),
-		AttachStacktrace: true,
-		Environment:      "client",
-		HTTPTransport: &http.Transport{
-			MaxIdleConns: 1,
-		},
-	}, verbose)
-	// db
-	db.Connect(verbose)
-
+	platform.InitCli()
 	bufSize = bSize
 	verb = verbose
 	initOnce.Do(initialize)

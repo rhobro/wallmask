@@ -19,7 +19,7 @@ func init() {
 	src := "openproxy.space"
 	base, _ := url.Parse("https://api.openproxy.space/list")
 	listBase := "https://api.openproxy.space/list/"
-	// Planners
+	// planners
 	var latest int64
 	var firstIdxd bool
 

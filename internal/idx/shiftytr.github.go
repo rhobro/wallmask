@@ -20,6 +20,9 @@ func init() {
 		wallmask.HTTPS:  "https://raw.githubusercontent.com/ShiftyTR/Proxy-List/%s/https.txt",
 		wallmask.SOCKS5: "https://raw.githubusercontent.com/ShiftyTR/Proxy-List/%s/socks5.txt",
 	}
+	// planners
+	var firstIdxd bool
+	var latestSHA string
 
 	scrape := func(sha string) {
 		for proto, file := range bases {
@@ -47,9 +50,6 @@ func init() {
 			}
 		}
 	}
-
-	var firstIdxd bool
-	var latestSHA string
 
 	run := func(isTest bool) {
 		branchesAPI := fmt.Sprintf("https://%s@api.github.com/repos/ShiftyTR/Proxy-List/branches", cfgcat.C.GetStringValue("ghOAuthToken", "", nil))

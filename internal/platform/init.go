@@ -6,26 +6,25 @@ import (
 	"github.com/rhobro/goutils/pkg/services/cfgcat"
 	"github.com/rhobro/goutils/pkg/services/sentree"
 	"github.com/rhobro/wallmask/internal/platform/consts"
+	"github.com/rhobro/wallmask/internal/platform/db"
 	"math/rand"
+	"net/http"
 	"time"
 )
 
 func Init() {
-	cInit(false)
+	cInit("server")
+}
+
+func InitCli() {
+	cInit("client")
 }
 
 func InitTest() {
-	cInit(true)
+	cInit("test")
 }
 
-func cInit(test bool) {
-	var env string
-	if test {
-		env = "test"
-	} else {
-		env = "server"
-	}
-
+func cInit(env string) {
 	// tmp files
 	fileio.Init("", "wmidx")
 	// cfgcat
@@ -35,9 +34,14 @@ func cInit(test bool) {
 		Dsn:              cfgcat.C.GetStringValue("sentryDSN", "", nil),
 		AttachStacktrace: true,
 		Environment:      env,
+		HTTPTransport: &http.Transport{
+			MaxIdleConns: 1,
+		},
 	}, true)
+	// db
+	db.Connect(true)
 
-	if !test {
+	if env != "test" {
 		rand.Seed(time.Now().UnixNano())
 	}
 }

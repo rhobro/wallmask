@@ -22,7 +22,21 @@ func InitCli() {
 }
 
 func InitTest() {
-	cInit("test")
+	// cfgcat
+	cfgcat.InitCustom(consts.ConfigCatConfig, true)
+	// sentry
+	sentree.Init(sentry.ClientOptions{
+		Dsn:              cfgcat.C.GetStringValue("sentryDSN", "", nil),
+		AttachStacktrace: true,
+		Environment:      "test",
+		HTTPTransport: &http.Transport{
+			MaxIdleConns: 1,
+		},
+	}, true)
+	// tmp files
+	fileio.Init("", "wmidx")
+
+	rand.Seed(time.Now().UnixNano())
 }
 
 func cInit(env string) {

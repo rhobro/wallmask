@@ -2,6 +2,7 @@ language: go
 go:
   - 1.14.x
   - 1.15.x
+  - 1.16.x
   - 1.x
 
 install:
@@ -12,8 +13,8 @@ install:
   - go get github.com/mattn/goveralls
 
 script:
-  - docker-compose up -d # test docker compose config
   - go test -race -v -coverprofile=coverage.txt -covermode=atomic ./... # unit tests for codecov
+  - docker-compose up -d # test docker compose config
 
 after_success:
   # codecov

@@ -11,10 +11,10 @@ import (
 
 func init() {
 	src := "proxy-list.download"
-	bases := map[wallmask.Protocol]string{
-		wallmask.HTTP:   "https://www.proxy-list.download/HTTP",
-		wallmask.HTTPS:  "https://www.proxy-list.download/HTTPS",
-		wallmask.SOCKS5: "https://www.proxy-list.download/SOCKS5",
+	bases := map[string]wallmask.Protocol{
+		"https://www.proxy-list.download/HTTP": wallmask.HTTP,
+		"https://www.proxy-list.download/HTTPS": wallmask.HTTPS,
+		"https://www.proxy-list.download/SOCKS5": wallmask.SOCKS5,
 	}
 
 	scrape := func(sch wallmask.Protocol, base string) {
@@ -49,7 +49,7 @@ func init() {
 	}
 
 	run := func(bool) {
-		for sc, ur := range bases {
+		for ur, sc := range bases {
 			scrape(sc, ur)
 		}
 	}

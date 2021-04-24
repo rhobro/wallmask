@@ -21,7 +21,7 @@ type idx struct {
 	running bool
 }
 
-// presumes scheduler has set running and last
+// F presumes scheduler has set running and last
 func (i *idx) F(isTest bool) {
 	i.run(isTest)
 	i.running = false
@@ -43,7 +43,7 @@ const sqlInsert = `
 	INSERT INTO proxies (protocol, ipv4, port, lastTested, working)
 	VALUES ($1, $2, $3, $4, $5);`
 
-// add func made into a variable for testing purposes
+// Add func made into a variable for testing purposes
 var Add = func(p *wallmask.Proxy) {
 	if p != nil {
 		if httputil.IsValidIPv4(p.IPv4) {

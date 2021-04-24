@@ -13,7 +13,7 @@ func init() {
 	src := "aliveproxy.com"
 	bases := map[string]wallmask.Protocol{
 		"http://www.aliveproxy.com/high-anonymity-proxy-list/": wallmask.HTTP,
-		"http://aliveproxy.com/socks5-list/": wallmask.SOCKS5,
+		"http://aliveproxy.com/socks5-list/":                   wallmask.SOCKS5,
 	}
 
 	scrape := func(sch wallmask.Protocol, base string) {

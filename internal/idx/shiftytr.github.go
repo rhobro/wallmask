@@ -15,9 +15,9 @@ import (
 func init() {
 	src := "shiftytr.github"
 
-	bases := map[string]wallmask.Protocol {
-		"https://raw.githubusercontent.com/ShiftyTR/Proxy-List/%s/http.txt": wallmask.HTTP,
-		"https://raw.githubusercontent.com/ShiftyTR/Proxy-List/%s/https.txt": wallmask.HTTPS,
+	bases := map[string]wallmask.Protocol{
+		"https://raw.githubusercontent.com/ShiftyTR/Proxy-List/%s/http.txt":   wallmask.HTTP,
+		"https://raw.githubusercontent.com/ShiftyTR/Proxy-List/%s/https.txt":  wallmask.HTTPS,
 		"https://raw.githubusercontent.com/ShiftyTR/Proxy-List/%s/socks5.txt": wallmask.SOCKS5,
 	}
 	// planners

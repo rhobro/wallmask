@@ -13,7 +13,7 @@ import (
 func init() {
 	src := "my-proxy.com"
 	bases := map[string]wallmask.Protocol{
-		"https://www.my-proxy.com/free-elite-proxy.html": wallmask.HTTP,
+		"https://www.my-proxy.com/free-elite-proxy.html":   wallmask.HTTP,
 		"https://www.my-proxy.com/free-socks-5-proxy.html": wallmask.SOCKS5,
 	}
 
